@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../PicWallProtocol/PicWallProtocol.iml" filepath="$PROJECT_DIR$/../PicWallProtocol/PicWallProtocol.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PicWallServer.iml" filepath="$PROJECT_DIR$/PicWallServer.iml" />
+    </modules>
+  </component>
+</project>
+

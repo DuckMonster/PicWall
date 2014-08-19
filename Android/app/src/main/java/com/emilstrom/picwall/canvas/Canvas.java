@@ -1,0 +1,214 @@
+package com.emilstrom.picwall.canvas;
+
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
+import android.util.Log;
+import com.emilstrom.net.client.*;
+import com.emilstrom.picwall.MainActivity;
+import com.emilstrom.picwall.canvas.UI.Image.Head;
+import com.emilstrom.picwall.helper.*;
+import com.emilstrom.picwall.protocol.Protocol;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by Emil on 2014-07-30.
+ */
+public class Canvas implements GLSurfaceView.Renderer, IClient {
+	public static final Color colorList[] = {
+			new Color(13, 13, 13),
+			new Color(38, 38, 38),
+			new Color(113, 113, 113),
+			new Color(1f, 1f, 1f)
+	};
+
+	public static final String IMAGE_DIRECTORY = "http://host.patadata.se/imgbank/";
+
+	public static Canvas canvas;
+	public static float updateTime = -1;
+
+	public static ClientEngine client;
+
+	private long lastTime;
+
+	public Grid grid;
+
+	List<String>    cameraBuffer = new ArrayList<String>(),
+					serverFilenameBuffer = new ArrayList<String>();
+
+	public Canvas() {
+		canvas = this;
+		client = new ClientEngine(this);
+	}
+
+	public void cameraSnap(String path) {
+		cameraBuffer.add(path);
+		requestFilename();
+	}
+
+	public void logic() {
+		calculateUpdateTime();
+		client.update(updateTime);
+
+		while(cameraBuffer.size() > 0 && serverFilenameBuffer.size() > 0) {
+			Log.v(MainActivity.TAG, "Trying to upload image...");
+
+			String path = cameraBuffer.get(0),
+					serverName = serverFilenameBuffer.get(0);
+			cameraBuffer.remove(0);
+			serverFilenameBuffer.remove(0);
+
+			MainActivity.context.uploadFileToServer(path, serverName);
+
+			if (grid.threadIsExpanded())
+				sendNodeUploaded(grid.getHead(grid.expandedHead), serverName);
+			else if (grid.imageIsZoomed())
+				sendNodeUploaded((Head)grid.zoomedImage, serverName);
+			else
+				sendHeadUploaded(serverName);
+		}
+
+		grid.logic();
+	}
+
+	public void draw() {
+		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+		grid.draw();
+	}
+
+	private void calculateUpdateTime() {
+		if (updateTime == -1) {
+			lastTime = System.currentTimeMillis();
+		}
+
+		long newTime = System.currentTimeMillis();
+		updateTime = (newTime - lastTime) * 0.001f;
+
+		lastTime = newTime;
+	}
+
+	public void backButtonPressed() {
+		grid.backButtonPressed();
+	}
+
+	//// Online stuff
+	@Override
+	public void serverConnected() {
+		Log.v(MainActivity.TAG, "Connected!");
+		grid.requestImage();
+	}
+
+	@Override
+	public void serverMessage(MessageBuffer msg) {
+		switch(msg.readWord()) {
+			case Protocol.RECEIVE_HEAD:
+				grid.receiveHead(msg);
+				break;
+
+			case Protocol.RECEIVE_NODE:
+				grid.receiveNode(msg);
+				break;
+
+			case Protocol.RECEIVE_CLEAR:
+				grid.receiveClear();
+				break;
+
+			case Protocol.REQUEST_FILE_NAME:
+				serverFilenameBuffer.add(msg.readString() + ".png");
+				break;
+		}
+	}
+
+	@Override
+	public void serverDisconnected() {
+		Log.v(MainActivity.TAG, "Disconnected!");
+	}
+
+	@Override
+	public void engineError(Exception e) {
+		Log.v(MainActivity.TAG, e.toString());
+	}
+
+	///
+
+	public void requestFilename() {
+		MessageBuffer msg = new MessageBuffer();
+		msg.addWord(Protocol.REQUEST_FILE_NAME);
+		client.sendMessage(msg);
+	}
+
+	public void sendHeadUploaded(String filename) {
+		MessageBuffer msg = new MessageBuffer();
+
+		msg.addWord(Protocol.HEAD_UPLOADED);
+		msg.addString(filename);
+
+		client.sendMessage(msg);
+	}
+
+	public void sendNodeUploaded(Head h, String filename) {
+		MessageBuffer msg = new MessageBuffer();
+
+		msg.addWord(Protocol.NODE_UPLOADED);
+		msg.addInt(h.headServerIndex);
+
+		msg.addString(filename);
+
+		client.sendMessage(msg);
+	}
+
+
+	////
+	public Camera camera;
+
+	float[] projectionMatrix = new float[16];
+	public float canvasWidth = 20, canvasHeight;
+
+	public float[] getVPMatrix() {
+		float vpMatrix[] = new float[16];
+		Matrix.multiplyMM(vpMatrix, 0, projectionMatrix, 0, camera.getViewMatrix(), 0);
+
+		return vpMatrix;
+	}
+
+	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
+		Color bg = colorList[0];
+		GLES20.glClearColor(bg.r, bg.b, bg.g, 1f);
+//		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+
+		GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+		GLES20.glEnable(GLES20.GL_BLEND);
+
+		camera = new Camera(this);
+
+		Shader.generateShaders();
+
+		grid = new Grid(this);
+
+		client.connect("host.patadata.se", 12345);
+	}
+
+	public void onDrawFrame(GL10 unused) {
+		if (client.connected) {
+			logic();
+			draw();
+		}
+	}
+
+	public void onSurfaceChanged(GL10 unused, int width, int height) {
+		GLES20.glViewport(0, 0, width, height);
+
+		float ratio = (float)width / height;
+		canvasHeight = canvasWidth/ratio;
+
+		Matrix.orthoM(projectionMatrix, 0, -canvasWidth/2, canvasWidth/2, -canvasHeight/2, canvasHeight/2, 1f, 16f);
+	}
+
+	public static void setStencilDepth(int d) {
+		GLES20.glStencilFunc(GLES20.GL_LEQUAL, d, 0xff);
+	}
+}
