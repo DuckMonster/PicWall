@@ -38,3 +38,5 @@ Icon
 
 #Java stuff
 *.xml
+*workspace*
+
