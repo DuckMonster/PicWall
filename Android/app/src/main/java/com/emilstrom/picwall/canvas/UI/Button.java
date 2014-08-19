@@ -1,7 +1,5 @@
 package com.emilstrom.picwall.canvas.UI;
 
-import android.opengl.GLES20;
-import com.emilstrom.picwall.MainActivity;
 import com.emilstrom.picwall.canvas.Canvas;
 import com.emilstrom.picwall.canvas.Grid;
 import com.emilstrom.picwall.helper.*;
@@ -10,19 +8,37 @@ import com.emilstrom.picwall.helper.*;
  * Created by Emil on 2014-08-09.
  */
 public class Button extends UIElement {
+	public static final float iconPadding = 0.3f;
+	public static interface ButtonAction {
+		public void execute();
+	}
+
+	ButtonAction onClickAction;
+
 	Vertex2 position, targetPosition;
-	Mesh mesh;
-	float scale = 3f;
+	Mesh buttonMesh, iconMesh;
+	float size = 3f;
 
 	Input oldInput;
 
 	Timer clickedTimer = new Timer(0.5f, true);
 
-	public Button(Vertex2 pos, int icon, Grid g) {
+	public Button(Vertex2 pos, int icon, float size, Grid g) {
 		super(g);
 		position = new Vertex2();
 		targetPosition = pos;
-		mesh = new Mesh(g.canvas);
+		buttonMesh = new Mesh(g.canvas);
+		iconMesh = new Mesh(g.canvas, TextureLoader.loadTextureFromResource(icon));
+		this.size = size;
+	}
+	public Button(ButtonAction onClick, Vertex2 pos, int icon, float size, Grid g) {
+		super(g);
+		onClickAction = onClick;
+		position = new Vertex2();
+		targetPosition = pos;
+		buttonMesh = new Mesh(g.canvas);
+		iconMesh = new Mesh(g.canvas, TextureLoader.loadTextureFromResource(icon));
+		this.size = size;
 	}
 
 	@Override
@@ -32,7 +48,7 @@ public class Button extends UIElement {
 
 	@Override
 	public Vertex2 getSize() {
-		return new Vertex2(scale, scale);
+		return new Vertex2(size, size);
 	}
 
 	@Override
@@ -41,6 +57,7 @@ public class Button extends UIElement {
 	}
 
 	public void onClick() {
+		if (onClickAction != null) onClickAction.execute();
 		clickedTimer.reset();
 	}
 
@@ -69,17 +86,27 @@ public class Button extends UIElement {
 		Canvas.setStencilDepth(getDepth());
 
 		if (clickedTimer.isDone())
-			mesh.setColor(Canvas.colorList[1]);
+			buttonMesh.setColor(Canvas.getColor(1));
 		else {
 			float f = (float)Math.pow(6, -clickedTimer.percentageDone() * 5f);
-			mesh.setColor(Color.blend(Canvas.colorList[1], Canvas.colorList[2], f));
+			buttonMesh.setColor(Color.blend(Canvas.getColor(1), Canvas.getColor(2), f));
 		}
 
-		mesh.reset();
+		buttonMesh.reset();
 
-		mesh.translate(position);
-		mesh.scale(scale);
+		buttonMesh.translate(position);
+		buttonMesh.scale(size);
 
-		mesh.draw();
+		buttonMesh.draw();
+
+		if (iconMesh != null) {
+			iconMesh.reset();
+
+			iconMesh.translate(position);
+			iconMesh.scale(size * (1f - iconPadding));
+			iconMesh.scale(iconMesh.tex.scaleWidth, iconMesh.tex.scaleHeight, 1f);
+
+			iconMesh.draw();
+		}
 	}
 }

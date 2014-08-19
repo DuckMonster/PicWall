@@ -49,19 +49,14 @@ public class Grid {
 	public List<UIElement> uiElementList = new ArrayList<UIElement>();
 
 	public Menu mainMenu;
-	public ButtonCamera buttonCamera;
-	public ButtonGallery buttonGallery;
-	public ButtonMenu buttonMenu;
+	public TopMenu topMenu;
 
 	public Grid(Canvas c) {
 		canvas = c;
 		zoomedBackgroundMesh = new Mesh(c);
 
 		mainMenu = new Menu(this);
-
-		buttonCamera = new ButtonCamera(new Vertex2(canvas.canvasWidth/2 - 2.2f, canvas.canvasHeight/2 - 2.2f), R.drawable.loading, this);
-		buttonGallery = new ButtonGallery(new Vertex2(canvas.canvasWidth/2 - 4.4f, canvas.canvasHeight/2 - 2.2f), R.drawable.loadingfailed, this);
-		buttonMenu = new ButtonMenu(new Vertex2(), R.drawable.camera, this);
+		topMenu = new TopMenu(this);
 	}
 
 	public Head getHead(int headIndex) {
@@ -239,10 +234,9 @@ public class Grid {
 		if (zoomedBackgroundAlpha < 0f) zoomedBackgroundAlpha = 0f;
 
 		for(Head i : headList) if (i != null) i.logic();
-		buttonCamera.logic();
-		buttonGallery.logic();
-		buttonMenu.logic();
+
 		mainMenu.logic();
+		topMenu.logic();
 		zoomedImage = zoomedBufferImage;
 	}
 
@@ -266,10 +260,8 @@ public class Grid {
 			zoomedBackgroundMesh.draw();
 		}
 
-		buttonCamera.draw();
-		buttonGallery.draw();
-		buttonMenu.draw();
 		mainMenu.draw();
+		topMenu.draw();
 	}
 
 	//Server communications

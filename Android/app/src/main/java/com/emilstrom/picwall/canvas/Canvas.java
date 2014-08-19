@@ -19,12 +19,15 @@ import java.util.List;
  * Created by Emil on 2014-07-30.
  */
 public class Canvas implements GLSurfaceView.Renderer, IClient {
-	public static final Color colorList[] = {
+	static final Color colorList[] = {
 			new Color(13, 13, 13),
 			new Color(38, 38, 38),
 			new Color(113, 113, 113),
 			new Color(1f, 1f, 1f)
 	};
+	public static Color getColor(int i) {
+		return new Color(colorList[i]);
+	}
 
 	public static final String IMAGE_DIRECTORY = "http://host.patadata.se/imgbank/";
 
@@ -39,14 +42,16 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 
 	List<String>    cameraBuffer = new ArrayList<String>(),
 					serverFilenameBuffer = new ArrayList<String>();
+	List<Integer>	imageReplyBuffer = new ArrayList<Integer>();
 
 	public Canvas() {
 		canvas = this;
 		client = new ClientEngine(this);
 	}
 
-	public void cameraSnap(String path) {
+	public void cameraSnap(String path, int headReply) {
 		cameraBuffer.add(path);
+		imageReplyBuffer.add(headReply);
 		requestFilename();
 	}
 
@@ -59,17 +64,19 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 
 			String path = cameraBuffer.get(0),
 					serverName = serverFilenameBuffer.get(0);
+			int headReply = imageReplyBuffer.get(0);
+
 			cameraBuffer.remove(0);
 			serverFilenameBuffer.remove(0);
+			imageReplyBuffer.remove(0);
 
 			MainActivity.context.uploadFileToServer(path, serverName);
 
-			if (grid.threadIsExpanded())
-				sendNodeUploaded(grid.getHead(grid.expandedHead), serverName);
-			else if (grid.imageIsZoomed())
-				sendNodeUploaded((Head)grid.zoomedImage, serverName);
-			else
+			if (headReply != -1) {
+				sendNodeUploaded(grid.getHeadByServerID(headReply), serverName);
+			} else {
 				sendHeadUploaded(serverName);
+			}
 		}
 
 		grid.logic();

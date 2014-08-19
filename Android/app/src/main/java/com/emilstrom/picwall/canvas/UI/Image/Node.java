@@ -27,6 +27,12 @@ public class Node extends Image {
 		return head.isExpanded();
 	}
 
+	@Override
+	public void onClick() {
+		if (isExpanded() || !head.canExpand()) super.onClick();
+		else head.expand();
+	}
+
 	public Vertex2 getTargetPosition() {
 		if (isZoomed()) {
 			return new Vertex2();

@@ -22,7 +22,9 @@ public class MainActivity extends Activity {
 	public static final String TAG = "PicWallTag";
 	public static MainActivity context;
 
-	static final int RESULT_CAMERA = 100, RESULT_IMAGE_PICKER = 101;
+	public static final int RESULT_CAMERA = 100, RESULT_IMAGE_PICKER = 101;
+
+	int imageReplyBuffer = -1;
 
 	GLSurface surface;
 
@@ -47,7 +49,10 @@ public class MainActivity extends Activity {
 			if (resultCode == RESULT_OK) {
 				File f = getTempFile();
 				try {
-					surface.canvas.cameraSnap(f.getPath());
+					surface.canvas.cameraSnap(
+							f.getPath(),
+							imageReplyBuffer
+					);
 					Log.v(TAG, "Filed saved at " + f.getPath());
 				} catch(Exception e) {
 					Log.v(TAG, "Something went wrong :(");
@@ -72,19 +77,28 @@ public class MainActivity extends Activity {
 
 				cursor.close();
 
-				context.surface.canvas.cameraSnap(filePath);
+				context.surface.canvas.cameraSnap(
+						filePath,
+						imageReplyBuffer
+				);
 			}
 		}
 	}
 
-	public void launchCameraIntent() {
+	public void launchCameraIntent(int replyHead) {
 		Intent in = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		in.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(getTempFile()));
+		in.putExtra("image_reply", replyHead);
+		imageReplyBuffer = replyHead;
+
 		startActivityForResult(in, RESULT_CAMERA);
 	}
 
-	public void launchImagePickerIntent() {
+	public void launchImagePickerIntent(int replyHead) {
 		Intent in = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+		in.putExtra("image_reply", replyHead);
+		imageReplyBuffer = replyHead;
+
 		startActivityForResult(in, RESULT_IMAGE_PICKER);
 	}
 

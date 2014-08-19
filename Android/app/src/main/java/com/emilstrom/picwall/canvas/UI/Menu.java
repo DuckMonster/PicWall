@@ -44,7 +44,7 @@ public class Menu {
 	public void draw() {
 		Canvas.setStencilDepth(0);
 
-		menuMesh.setColor(Canvas.colorList[1]);
+		menuMesh.setColor(Canvas.getColor(1));
 
 		menuMesh.reset();
 

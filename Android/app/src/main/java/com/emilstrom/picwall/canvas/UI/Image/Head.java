@@ -1,7 +1,10 @@
 package com.emilstrom.picwall.canvas.UI.Image;
 
+import android.util.Log;
+import com.emilstrom.picwall.MainActivity;
 import com.emilstrom.picwall.canvas.Canvas;
 import com.emilstrom.picwall.canvas.Grid;
+import com.emilstrom.picwall.canvas.UI.ReplyMenu;
 import com.emilstrom.picwall.helper.*;
 
 import java.util.ArrayList;
@@ -25,15 +28,19 @@ public class Head extends Image {
 	float expandOriginPosition, expandHeadOffset;
 	float expandMinOffset, expandMaxOffset;
 
+	ReplyMenu replyMenu;
+
 	public Head(int serverID, String url, int index, Grid g) {
 		super(url, g);
 		headServerIndex = serverID;
 		headIndex = index;
+		replyMenu = new ReplyMenu(this, g);
 	}
 	public Head(int serverID, Texture t, int index, Grid g) {
 		super(t, g);
 		headServerIndex = serverID;
 		headIndex = index;
+		replyMenu = new ReplyMenu(this, g);
 	}
 
 	public Node addNode(String url) {
@@ -62,6 +69,8 @@ public class Head extends Image {
 	public boolean canMove() {
 		return !grid.isScaling() && !grid.isMovingGrid() && !grid.imageIsZoomed();
 	}
+
+	public boolean showReplyMenu() { return isExpanded() || getNmbrOfNodes() <= 0; }
 
 	public Vertex2 getTargetPosition() {
 		if (isZoomed()) {
@@ -107,7 +116,7 @@ public class Head extends Image {
 	}
 
 	public void expand() {
-		if (isExpanded() || nodeList.size() <= 0) return;
+		if (isExpanded() || !canExpand()) return;
 
 		grid.expandedHead = headIndex;
 		expandOriginPosition = grid.gridPosition;
@@ -121,6 +130,8 @@ public class Head extends Image {
 	}
 
 	public void onClick() {
+		Log.v(MainActivity.TAG, "Click!");
+
 		if (isExpanded() || !canExpand()) super.onClick();
 		else expand();
 	}
@@ -132,6 +143,8 @@ public class Head extends Image {
 		if (!isZoomed() && isExpanded())
 			if (Math.abs(grid.gridPosition - expandOriginPosition) >= COLLAPSE_DISTANCE)
 				collapse();
+
+		replyMenu.logic();
 	}
 
 	public void checkInput(Input in) {
@@ -195,5 +208,7 @@ public class Head extends Image {
 
 		for(Node n : nodeList) n.draw();
 		super.draw();
+
+		if (showReplyMenu()) replyMenu.draw();
 	}
 }
