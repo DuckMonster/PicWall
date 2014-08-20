@@ -12,7 +12,7 @@ public class Camera {
 
 	public Camera(Canvas c) {
 		canvas = c;
-		position = new Vertex3(0f, 0f, 9f);
+		position = new Vertex3(0f, 0f, 3f);
 	}
 
 	public float[] getViewMatrix() {

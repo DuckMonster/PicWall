@@ -5,6 +5,7 @@ import com.emilstrom.net.server.MessageBuffer;
 import com.emilstrom.picwall.protocol.Protocol;
 import com.emilstrom.picwall.server.program.image.Head;
 import com.emilstrom.picwall.server.program.image.Node;
+import sun.plugin2.message.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,6 @@ public class User {
 	public void sendHead(Head h) {
 		h.sendToUser(this);
 	}
-
 	public void sendNode(Node n) {
 		n.sendToUser(this);
 	}
@@ -37,6 +37,22 @@ public class User {
 	public void sendClearCanvas() {
 		MessageBuffer msg = new MessageBuffer();
 		msg.addWord(Protocol.DATA_CLEAR);
+
+		sendMessage(msg);
+	}
+
+	public void sendOpenThread(Head h) {
+		MessageBuffer msg = new MessageBuffer();
+		msg.addWord(Protocol.DATA_OPEN_THREAD);
+		msg.addInt(h.headIndex);
+
+		sendMessage(msg);
+	}
+
+	public void sendCenterThread(Head h) {
+		MessageBuffer msg = new MessageBuffer();
+		msg.addWord(Protocol.DATA_CENTER_THREAD);
+		msg.addInt(h.headIndex);
 
 		sendMessage(msg);
 	}

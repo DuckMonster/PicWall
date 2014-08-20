@@ -124,18 +124,6 @@ public class TextureLoader implements Runnable {
 
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inScaled = false;
-			options.inJustDecodeBounds = true;
-
-			bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream(), null, options);
-
-			int sampleSize = (int)Math.ceil((float)Math.max(options.outHeight, options.outWidth) / 1500);
-            Log.v(MainActivity.TAG, "Sample size: " + sampleSize);
-			options = new BitmapFactory.Options();
-
-			options.inScaled = false;
-			options.inSampleSize = sampleSize;
-
-			conn.disconnect();
 
 			bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream(), null, options);
 

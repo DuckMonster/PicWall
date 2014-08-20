@@ -51,8 +51,6 @@ public class Head {
 		MessageBuffer msg = getThreadMessageBuffer();
 		u.sendMessage(msg);
 		u.addThreadToList(this);
-
-		Console.output("Sent Head " + headIndex + " to client " + u.clientID + ": " + imageUrl);
 	}
 
 	public void sendToAllUsers() {

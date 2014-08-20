@@ -1,5 +1,6 @@
 package com.emilstrom.picwall.canvas.UI;
 
+import com.emilstrom.math.ExtraMath;
 import com.emilstrom.picwall.MainActivity;
 import com.emilstrom.picwall.R;
 import com.emilstrom.picwall.canvas.Canvas;
@@ -19,10 +20,11 @@ public class TopMenu extends UIElement {
 
 	static class MenuButton extends Button {
 		int buttonIndex;
+		TopMenu menu;
 
-		public MenuButton(ButtonAction onClick, int index, int icon, Grid g) {
+		public MenuButton(ButtonAction onClick, int index, int icon, TopMenu menu, Grid g) {
 			super(onClick, new Vertex2(), icon, menuHeight - buttonPadding*2, g);
-
+			this.menu = menu;
 			buttonIndex = index;
 		}
 
@@ -30,13 +32,14 @@ public class TopMenu extends UIElement {
 		public Vertex2 getTargetPosition() {
 			return new Vertex2(
 					-grid.canvas.canvasWidth/2 + buttonPadding + size/2 + (buttonPadding + size) * buttonIndex,
-					grid.canvas.canvasHeight/2 - menuHeight/2
+					menu.getPosition().y
 			);
 		}
 	}
 
 	Mesh menuMesh;
 	List<MenuButton> buttonList = new ArrayList<MenuButton>();
+	float menuPosition = 1f;
 
 	public TopMenu(Grid g) {
 		super(g);
@@ -61,14 +64,26 @@ public class TopMenu extends UIElement {
 	}
 
 	public void addButton(Button.ButtonAction action, int icon) {
-		buttonList.add(new MenuButton(action, buttonList.size(), icon, grid));
+		buttonList.add(new MenuButton(action, buttonList.size(), icon, this, grid));
 	}
 
 	public Vertex2 getPosition() {
-		return new Vertex2(0f, grid.canvas.canvasHeight/2 - menuHeight/2);
+		return new Vertex2(0f, grid.canvas.canvasHeight/2 + menuHeight/2 - menuHeight * menuPosition);
+	}
+	public boolean menuIsVisible() {
+		return !grid.threadIsExpanded();
 	}
 
 	public void logic() {
+		float dif;
+		if (menuIsVisible()) {
+			dif = 1f - menuPosition;
+		} else {
+			dif = 0f - menuPosition;
+		}
+
+		menuPosition += ExtraMath.minabs(dif, dif * 10f * Canvas.updateTime);
+
 		for(MenuButton b : buttonList) b.logic();
 	}
 
@@ -79,6 +94,7 @@ public class TopMenu extends UIElement {
 
 		Color c = Canvas.getColor(1);
 		c.a = 0.4f;
+
 		menuMesh.setColor(c);
 		menuMesh.translate(getPosition());
 		menuMesh.scale(grid.canvas.canvasWidth, menuHeight, 1f);

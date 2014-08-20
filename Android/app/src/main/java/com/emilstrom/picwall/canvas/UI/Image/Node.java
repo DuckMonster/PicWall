@@ -1,5 +1,6 @@
 package com.emilstrom.picwall.canvas.UI.Image;
 
+import com.emilstrom.picwall.canvas.Canvas;
 import com.emilstrom.picwall.canvas.Grid;
 import com.emilstrom.picwall.helper.*;
 
@@ -33,9 +34,33 @@ public class Node extends Image {
 		else head.expand();
 	}
 
+	@Override
+	public void onSwipe(int dir) {
+		if (isZoomed()) {
+			int nextIndex = nodeIndex + dir;
+
+			if (nextIndex >= 0) {
+				Node n = head.getNode(nextIndex);
+				if (n != null) {
+					n.zoom();
+					head.zoomOffset = dir;
+				}
+			} else {
+				head.zoom();
+				head.zoomOffset = dir;
+			}
+		}
+	}
+
+	@Override
+	public void zoom() {
+		head.centerNode(this);
+		super.zoom();
+	}
+
 	public Vertex2 getTargetPosition() {
 		if (isZoomed()) {
-			return new Vertex2();
+			return new Vertex2(grid.canvas.canvasWidth * head.zoomOffset, 0f);
 		} else {
 			float s = grid.gridScale;
 
@@ -65,6 +90,7 @@ public class Node extends Image {
 		}
 	}
 
+	@Override
 	public Color getColor() {
 		if (isZoomed()) return Color.WHITE;
 		else if (grid.threadIsExpanded() && !isExpanded()) return new Color(1f, 1f, 1f, 0.4f - 0.2f*nodeIndex);
@@ -76,12 +102,25 @@ public class Node extends Image {
 	public int getDepth() {
 		if (isZoomed()) return 5;
 		else if (isExpanded()) return 9;
-		else return 10 + nodeIndex;
+		else return 11 + nodeIndex;
 	}
 
 	public void logic() {
 		super.logic();
 
-		if (!isExpanded()) readyClickFinger = -1;
+        if (!isExpanded()) clickFingerBuffer = -1;
+	}
+
+	public void draw() {
+		Canvas.setStencilDepth(getDepth());
+
+		mesh.setColor(getColor());
+
+		mesh.reset();
+		mesh.translate(position);
+		mesh.scale(scale);
+
+		mesh.scale(wscale, hscale, 1f);
+		mesh.draw();
 	}
 }

@@ -9,6 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="PicWallProtocol" />
     <orderEntry type="library" name="ServerEngine" level="project" />
+    <orderEntry type="library" name="ExtraMath" level="project" />
   </component>
 </module>
 

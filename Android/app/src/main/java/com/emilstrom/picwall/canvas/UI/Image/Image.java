@@ -1,5 +1,6 @@
 package com.emilstrom.picwall.canvas.UI.Image;
 
+import com.emilstrom.math.ExtraMath;
 import com.emilstrom.picwall.canvas.Canvas;
 import com.emilstrom.picwall.canvas.Grid;
 import com.emilstrom.picwall.canvas.UI.UIElement;
@@ -9,7 +10,7 @@ import com.emilstrom.picwall.helper.*;
  * Created by Emil on 2014-07-31.
  */
 public class Image extends UIElement {
-	public static final float IMAGE_OFFSET = 0.5f, imageSpeed = 35f;
+	public static final float IMAGE_OFFSET = 0.5f, imageSpeed = 29f;
 
 	public Mesh mesh;
 
@@ -19,7 +20,9 @@ public class Image extends UIElement {
 	public float scale;
 	float wscale = 1f, hscale = 1f;
 
-	int readyClickFinger = -1;
+	int clickFingerBuffer = -1;
+	Vertex2 clickPositionBuffer;
+	int swipeFingerBuffer = -1;
 
 	Input oldInput;
 
@@ -49,7 +52,8 @@ public class Image extends UIElement {
 
 	@Override
 	public Vertex2 getSize() {
-		return new Vertex2(scale * wscale, scale * hscale);
+		if (isZoomed()) return new Vertex2(grid.canvas.canvasWidth, grid.canvas.canvasHeight);
+		else return new Vertex2(scale * wscale, scale * hscale);
 	}
 
 	@Override
@@ -104,12 +108,17 @@ public class Image extends UIElement {
 		}
 	}
 
+	public void onSwipe(int dir) {
+
+	}
+
 	public void logic() {
 		{
 			Vertex2 targetPosition = getTargetPosition(),
 					dif = Vertex2.subtract(targetPosition, position);
 
-			position.add(dif.times(Canvas.updateTime * imageSpeed));
+			position.x += ExtraMath.minabs(dif.x * Canvas.updateTime * imageSpeed, dif.x);
+			position.y += ExtraMath.minabs(dif.y * Canvas.updateTime * imageSpeed, dif.y);
 		}
 
 		//Scale to target scale
@@ -140,29 +149,47 @@ public class Image extends UIElement {
 		oldInput = in;
 
 		if (grid.isMovingGrid() || grid.isScaling() || grid.isMovingNodes())
-			readyClickFinger = -1;
+			clickFingerBuffer = -1;
 	}
 
 	public void checkInput(Input in) {
 		//Check for clicked
 		for(int i=0; i<Input.NMBR_OF_FINGERS; i++) {
 			if (in.isPressed(i) && !oldInput.isPressed(i)) {
-				if (collidesWith(in.getPosition(i))) {
-					readyClickFinger = i;
+				Vertex2 clickPos = in.getPosition(i);
+
+				if (collidesWith(clickPos) && isClicked(clickPos)) {
+					clickPositionBuffer = new Vertex2(clickPos);
+					clickFingerBuffer = i;
+
+					swipeFingerBuffer = i;
 				}
 			}
+		}
 
-			if (!in.isPressed(i)) {
-				if (readyClickFinger == i && oldInput.isPressed(i)) {
-					Vertex2 pos = oldInput.getPosition(i);
+		//Check for swipe
+		if (swipeFingerBuffer != -1) {
+			if (in.isPressed(swipeFingerBuffer)) {
+				if (oldInput.isPressed(swipeFingerBuffer)) {
+					float dif = oldInput.getPosition(swipeFingerBuffer).x - in.getPosition(swipeFingerBuffer).x;
+					if (Math.abs(dif) > 1f)
+						onSwipe(dif > 0 ? 1 : -1);
+				}
+			} else swipeFingerBuffer = -1;
+		}
 
-					if (collidesWith(pos) && isClicked(pos)) {
-						onClick();
-					}
+		//Check for click
+		if (clickFingerBuffer != -1) {
+			if (!in.isPressed(clickFingerBuffer)) {
+				Vertex2 pos = oldInput.getPosition(clickFingerBuffer);
+
+				if (collidesWith(pos) && isClicked(pos)) {
+					onClick();
 				}
 
-				if (readyClickFinger == i) readyClickFinger = -1;
-			}
+				clickFingerBuffer = -1;
+			} else if (Vertex2.getLength(in.getPosition(clickFingerBuffer), clickPositionBuffer) > 0.5f)
+				clickFingerBuffer = -1;
 		}
 	}
 

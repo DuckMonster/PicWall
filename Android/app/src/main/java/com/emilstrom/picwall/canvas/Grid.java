@@ -19,7 +19,7 @@ import java.util.List;
  * Created by Emil on 2014-08-01.
  */
 public class Grid {
-	public static final float MIN_SCALE = 6f, MAX_SCALE = 17f, ZOOMED_BACKGROUND_ALPHA = 0.8f, MOVE_THRESHOLD = 0.6f, MOVE_THRESHOLD_EXPANDED = 0.8f;
+	public static final float MIN_SCALE = 6f, MAX_SCALE = 13f, ZOOMED_BACKGROUND_ALPHA = 0.8f, MOVE_THRESHOLD = 0.6f, MOVE_THRESHOLD_EXPANDED = 0.8f;
 
 	public Canvas canvas;
 
@@ -117,6 +117,10 @@ public class Grid {
 
 	public boolean allowMove() {
 		return !isScaling() && !isMovingNodes() && !imageIsZoomed();
+	}
+
+	public void centerThread(Head h) {
+		gridPosition = (h.headIndex*1.2f) * gridScale;
 	}
 
 	public UIElement getClickedElement(Vertex2 pos) {

@@ -25,7 +25,7 @@ import java.util.Random;
 public class Program implements IServer {
 	public static int THREAD_COUNT = 0;
 	public static final String IMAGE_DIRECTORY = "http://199.127.226.140/imgbank";
-	public static final byte VERSION[] = {0, 1, 3, 0};
+	public static final byte VERSION[] = {0, 1, 3, 1};
 	public static ServerEngine server;
 	static Random random = new Random();
 
@@ -206,11 +206,15 @@ public class Program implements IServer {
 
 		Head h = addHead("uploads/" + msg.readString());
 		h.sendToAllUsers();
+		u.sendCenterThread(h);
 
 		databaseHandler.saveDatabase();
 	}
 	public void receiveNodeUploaded(User u, MessageBuffer msg) {
-		Node n = addNodeToHead(getHead(msg.readInt()), "uploads/" + msg.readString());
+		Head h = getHead(msg.readInt());
+		Node n = addNodeToHead(h, "uploads/" + msg.readString());
+		u.sendOpenThread(h);
+
 		Console.output("Client " + u.clientID + " replied to thread " + n.head.headIndex + "!");
 
 		databaseHandler.saveDatabase();

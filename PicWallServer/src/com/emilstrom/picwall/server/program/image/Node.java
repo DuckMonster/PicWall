@@ -24,7 +24,5 @@ public class Node {
 		msg.addString(imageUrl);
 
 		u.sendMessage(msg);
-
-		Console.output("Sent Node to client " + u.clientID + ": " + imageUrl);
 	}
 }

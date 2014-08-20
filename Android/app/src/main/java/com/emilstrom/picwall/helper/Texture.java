@@ -49,10 +49,12 @@ public class Texture {
 			srcHeight = b.getHeight();
 
 			float exp = (float) (Math.log(Math.max(srcWidth, srcHeight)) / Math.log(2));
-			exp = (float) Math.floor(exp);
-			exp = Math.min(15f, exp);          //MAX SIZE
+			exp = (float) Math.ceil(exp);
+			exp = Math.min(9f, exp);          //MAX SIZE
 
 			sb = Bitmap.createScaledBitmap(b, (int) Math.pow(2, exp), (int) Math.pow(2, exp), false);
+
+			Log.v(MainActivity.TAG, "Scaling image..." + b.getWidth() + "x" + b.getHeight() + " -> " + sb.getWidth() + "x" + sb.getWidth());
 
 			texWidth = sb.getWidth();
 			texHeight = sb.getHeight();

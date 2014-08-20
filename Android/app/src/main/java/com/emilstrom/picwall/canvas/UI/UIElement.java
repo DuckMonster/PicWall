@@ -3,6 +3,7 @@ package com.emilstrom.picwall.canvas.UI;
 import com.emilstrom.picwall.canvas.Canvas;
 import com.emilstrom.picwall.canvas.Grid;
 import com.emilstrom.picwall.helper.Vertex2;
+import com.emilstrom.picwall.helper.Vertex3;
 
 /**
  * Created by Emil on 2014-08-15.

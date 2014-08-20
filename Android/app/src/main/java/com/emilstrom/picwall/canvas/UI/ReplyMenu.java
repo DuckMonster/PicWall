@@ -37,6 +37,16 @@ public class ReplyMenu extends UIElement {
 
 			return pos;
 		}
+
+		@Override
+		public int getDepth() {
+			return menu.getDepth()-1;
+		}
+
+        @Override
+        public void onClick() {
+            if (menu.head.showReplyMenu()) super.onClick();
+        }
 	}
 
 	Mesh menuMesh;
@@ -90,6 +100,11 @@ public class ReplyMenu extends UIElement {
 		return (buttonPadding * (buttonList.size()+1) + (menuHeight-buttonPadding*2) * buttonList.size());
 	}
 
+	@Override
+	public int getDepth() {
+		return 11 + head.getNmbrOfNodes() + 2;
+	}
+
 	public void logic() {
 		Vertex2 target = getTargetPosition();
 		Vertex2 dif = target.minus(position);
@@ -97,11 +112,11 @@ public class ReplyMenu extends UIElement {
 		position.add(dif.times(35f * Canvas.updateTime));
 		position = getTargetPosition();
 
-		for(MenuButton b : buttonList) b.logic();
+		for (MenuButton b : buttonList) b.logic();
 	}
 
 	public void draw() {
-		Canvas.setStencilDepth(3);
+		Canvas.setStencilDepth(getDepth());
 
 		menuMesh.reset();
 

@@ -58,7 +58,6 @@ public class Button extends UIElement {
 
 	public void onClick() {
 		if (onClickAction != null) onClickAction.execute();
-		clickedTimer.reset();
 	}
 
 	public Vertex2 getTargetPosition() {
@@ -74,10 +73,15 @@ public class Button extends UIElement {
 		Input in = InputHelper.getInput();
 		if (oldInput == null) oldInput = in;
 
-		for(int i=0; i<Input.NMBR_OF_FINGERS; i++)
-			if (!in.isPressed(i) && oldInput.isPressed(i)) {
-				if (collidesWith(oldInput.getPosition(i)) && isClicked(oldInput.getPosition(i))) onClick();
-			}
+		for(int i=0; i<Input.NMBR_OF_FINGERS; i++) {
+			if (in.isPressed(i) && collidesWith(in.getPosition(i)) && isClicked(in.getPosition(i)))
+				clickedTimer.reset();
+
+            if (!in.isPressed(i) && oldInput.isPressed(i)) {
+                if (collidesWith(oldInput.getPosition(i)) && isClicked(oldInput.getPosition(i)))
+                    onClick();
+            }
+        }
 
 		oldInput = in;
 	}

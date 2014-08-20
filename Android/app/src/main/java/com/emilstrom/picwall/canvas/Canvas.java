@@ -70,13 +70,7 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 			serverFilenameBuffer.remove(0);
 			imageReplyBuffer.remove(0);
 
-			MainActivity.context.uploadFileToServer(path, serverName);
-
-			if (headReply != -1) {
-				sendNodeUploaded(grid.getHeadByServerID(headReply), serverName);
-			} else {
-				sendHeadUploaded(serverName);
-			}
+			ImageUploader.uploadImage(path, serverName, headReply, grid);
 		}
 
 		grid.logic();
@@ -122,6 +116,14 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 
 			case Protocol.RECEIVE_CLEAR:
 				grid.receiveClear();
+				break;
+
+			case Protocol.RECEIVE_OPEN_THREAD:
+				grid.getHeadByServerID(msg.readInt()).expand();
+				break;
+
+			case Protocol.RECEIVE_CENTER_THREAD:
+				grid.centerThread(grid.getHeadByServerID(msg.readInt()));
 				break;
 
 			case Protocol.REQUEST_FILE_NAME:

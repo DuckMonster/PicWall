@@ -1,6 +1,8 @@
 package com.emilstrom.picwall.canvas.UI.Image;
 
 import android.util.Log;
+
+import com.emilstrom.math.ExtraMath;
 import com.emilstrom.picwall.MainActivity;
 import com.emilstrom.picwall.canvas.Canvas;
 import com.emilstrom.picwall.canvas.Grid;
@@ -27,6 +29,7 @@ public class Head extends Image {
 
 	float expandOriginPosition, expandHeadOffset;
 	float expandMinOffset, expandMaxOffset;
+	float zoomOffset = 0f;
 
 	ReplyMenu replyMenu;
 
@@ -59,7 +62,8 @@ public class Head extends Image {
 	}
 
 	public Node getNode(int n) {
-		return nodeList.get(n);
+		if (n >= nodeList.size()) return null;
+		else return nodeList.get(n);
 	}
 
 	public boolean isMovingNodes() {
@@ -70,11 +74,18 @@ public class Head extends Image {
 		return !grid.isScaling() && !grid.isMovingGrid() && !grid.imageIsZoomed();
 	}
 
-	public boolean showReplyMenu() { return isExpanded() || getNmbrOfNodes() <= 0; }
+	public boolean showReplyMenu() {
+		if (isExpanded())
+			return true;
+		else if (getNmbrOfNodes() <= 0 && !grid.threadIsExpanded())
+			return true;
+
+		return false;
+	}
 
 	public Vertex2 getTargetPosition() {
 		if (isZoomed()) {
-			return new Vertex2();
+			return new Vertex2(grid.canvas.canvasWidth * zoomOffset, 0f);
 		} else {
 			Vertex2 pos = new Vertex2(-grid.canvas.canvasWidth / 2 + IMAGE_OFFSET + 0.5f * grid.gridScale,
 					0f - 1.2f * grid.gridScale * headIndex);
@@ -119,6 +130,7 @@ public class Head extends Image {
 		if (isExpanded() || !canExpand()) return;
 
 		grid.expandedHead = headIndex;
+		grid.centerThread(this);
 		expandOriginPosition = grid.gridPosition;
 		expandHeadOffset = expandMaxOffset;
 
@@ -129,11 +141,22 @@ public class Head extends Image {
 		grid.expandedHead = -1;
 	}
 
+	@Override
 	public void onClick() {
-		Log.v(MainActivity.TAG, "Click!");
-
 		if (isExpanded() || !canExpand()) super.onClick();
 		else expand();
+	}
+
+	@Override
+	public void onSwipe(int dir) {
+		if (isZoomed() && dir == 1) {
+			getNode(0).zoom();
+			zoomOffset = 1f;
+		}
+	}
+
+	public void centerNode(Node n) {
+		nodePosition = -1f * (n.nodeIndex+1);
 	}
 
 	public void logic() {
@@ -143,6 +166,8 @@ public class Head extends Image {
 		if (!isZoomed() && isExpanded())
 			if (Math.abs(grid.gridPosition - expandOriginPosition) >= COLLAPSE_DISTANCE)
 				collapse();
+
+		zoomOffset += ExtraMath.minabs(-zoomOffset * 10f * Canvas.updateTime, -zoomOffset);
 
 		replyMenu.logic();
 	}
