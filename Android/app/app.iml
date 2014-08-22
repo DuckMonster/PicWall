@@ -79,8 +79,9 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 20 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="ClientEngineAndroid" level="project" />
     <orderEntry type="library" exported="" name="ExtraMath" level="project" />
+    <orderEntry type="library" exported="" name="ClientEngine" level="project" />
+    <orderEntry type="library" exported="" name="ClientEngineAndroid" level="project" />
   </component>
 </module>
 

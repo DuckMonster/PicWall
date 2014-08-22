@@ -3,15 +3,13 @@ package com.emilstrom.picwall.server.program;
 import com.emilstrom.net.server.Client;
 import com.emilstrom.net.server.IServer;
 import com.emilstrom.net.server.MessageBuffer;
-import com.emilstrom.net.server.ServerEngine;
+import com.emilstrom.net.server.TCPServer;
 import com.emilstrom.picwall.protocol.Protocol;
 import com.emilstrom.picwall.server.program.database.DatabaseHandler;
 import com.emilstrom.picwall.server.program.image.Head;
 import com.emilstrom.picwall.server.program.image.Node;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,7 +24,7 @@ public class Program implements IServer {
 	public static int THREAD_COUNT = 0;
 	public static final String IMAGE_DIRECTORY = "http://199.127.226.140/imgbank";
 	public static final byte VERSION[] = {0, 1, 3, 1};
-	public static ServerEngine server;
+	public static TCPServer server;
 	static Random random = new Random();
 
 	public DatabaseHandler databaseHandler;
@@ -40,11 +38,11 @@ public class Program implements IServer {
 		Console.clear();
 		Console.output("--- SERVER STARTED! ---");
 		Console.output("--- Version " + VERSION[0] + "." + VERSION[1] + "." + VERSION[2] + "." + VERSION[3] + " ---");
-		ServerEngine.showMessages = false;
+		TCPServer.showMessages = false;
 
 		databaseHandler = new DatabaseHandler(this);
 
-		server = new ServerEngine(12345, this);
+		server = new TCPServer(12345, this);
 		headList = new ArrayList<Head>();
 
 		Console.init(this);
@@ -130,7 +128,7 @@ public class Program implements IServer {
 
 	public Head addHead(String url) {
 		THREAD_COUNT++;
-		Head h = new Head(THREAD_COUNT, url, this);
+		Head h = new Head(url, THREAD_COUNT, this);
 		headList.add(h);
 
 		return h;
@@ -179,6 +177,12 @@ public class Program implements IServer {
 		userList[id] = null;
 	}
 
+	@Override
+	public void engineException(Exception e) {
+		Console.output(e.toString());
+		e.printStackTrace();
+	}
+
 
 	//
 	public void sendHeadsToClient(User u, int n) {
@@ -186,6 +190,10 @@ public class Program implements IServer {
 			u.sendHead(
 					headList.get(random.nextInt(headList.size()))
 			);
+	}
+
+	public void disconnectAllUsers() {
+		for(User u : userList) u.disconnect();
 	}
 
 	public void sendAllHeadsToUser(User u) {
@@ -205,8 +213,14 @@ public class Program implements IServer {
 		Console.output("Client " + u.clientID + " created a thread!");
 
 		Head h = addHead("uploads/" + msg.readString());
-		h.sendToAllUsers();
-		u.sendCenterThread(h);
+
+		if (h.fileExists()) {
+			h.sendToAllUsers();
+			u.sendCenterThread(h);
+		} else {
+			Console.output("Uploading an image failed...", Console.COLOR_RED);
+			h.remove();
+		}
 
 		databaseHandler.saveDatabase();
 	}
@@ -284,6 +298,17 @@ public class Program implements IServer {
 								Head h = getHead(Integer.parseInt(params[1]));
 								if (h != null) h.remove();
 								else Console.output("That thread doesnt exist!", Console.COLOR_RED);
+							}
+							break;
+						}
+
+						case "user": {
+							if (params[1].equals("all")) {
+								disconnectAllUsers();
+							} else {
+								User u = getUser(Integer.parseInt(params[1]));
+								if (u != null) u.disconnect();
+								else Console.output("That user doesn't exist!", Console.COLOR_RED);
 							}
 							break;
 						}

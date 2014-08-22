@@ -7,12 +7,11 @@ import com.emilstrom.picwall.protocol.*;
 /**
  * Created by Emil on 2014-08-12.
  */
-public class Node {
+public class Node extends Image {
 	public Head head;
-	public String imageUrl;
-	public Node(Head h ,String url) {
+	public Node(String url, Head h) {
+		super(url);
 		head = h;
-		this.imageUrl = url;
 	}
 
 	public void sendToUser(User u) {
@@ -21,7 +20,7 @@ public class Node {
 		msg.addWord(Protocol.DATA_NODE);
 
 		msg.addInt(head.headIndex);
-		msg.addString(imageUrl);
+		msg.addString(url);
 
 		u.sendMessage(msg);
 	}

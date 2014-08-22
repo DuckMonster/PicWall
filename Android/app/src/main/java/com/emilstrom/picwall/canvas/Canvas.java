@@ -12,6 +12,9 @@ import com.emilstrom.picwall.protocol.Protocol;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +37,7 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 	public static Canvas canvas;
 	public static float updateTime = -1;
 
-	public static ClientEngine client;
+	public static TCPClient client;
 
 	private long lastTime;
 
@@ -46,7 +49,12 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 
 	public Canvas() {
 		canvas = this;
-		client = new ClientEngine(this);
+		client = new TCPClient(this);
+	}
+
+	public void connectToServer() {
+		grid = new Grid(this);
+		client.connect("host.patadata.se", 12345);
 	}
 
 	public void cameraSnap(String path, int headReply) {
@@ -57,7 +65,7 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 
 	public void logic() {
 		calculateUpdateTime();
-		client.update(updateTime);
+		client.update();
 
 		while(cameraBuffer.size() > 0 && serverFilenameBuffer.size() > 0) {
 			Log.v(MainActivity.TAG, "Trying to upload image...");
@@ -138,8 +146,13 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 	}
 
 	@Override
-	public void engineError(Exception e) {
+	public void engineException(Exception e) {
 		Log.v(MainActivity.TAG, e.toString());
+
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		Log.v(MainActivity.TAG, pw.toString()); // stack trace as a string
 	}
 
 	///
@@ -196,16 +209,12 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 
 		Shader.generateShaders();
 
-		grid = new Grid(this);
-
-		client.connect("host.patadata.se", 12345);
+		connectToServer();
 	}
 
 	public void onDrawFrame(GL10 unused) {
-		if (client.connected) {
-			logic();
-			draw();
-		}
+		logic();
+		draw();
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height) {

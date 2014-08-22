@@ -10,6 +10,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+
+import com.emilstrom.picwall.canvas.Canvas;
+
 import org.apache.http.protocol.HTTP;
 
 import java.io.*;
@@ -37,6 +40,30 @@ public class MainActivity extends Activity {
 
         setContentView(surface);
     }
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		surface.canvas.connectToServer();
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		Canvas.client.disconnect();
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		Canvas.client.disconnect();
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		Canvas.client.disconnect();
+	}
 
 	@Override
 	public void onBackPressed() {

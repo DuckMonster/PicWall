@@ -61,6 +61,26 @@ public class TopMenu extends UIElement {
 				},
 				R.drawable.gallery
 		);
+
+		addButton(
+				new Button.ButtonAction () {
+					public void execute() {
+						Canvas.client.disconnect();
+						grid.receiveClear();
+						//grid.canvas.connectToServer();
+					}
+				},
+				R.drawable.gallery
+		);
+
+		addButton(
+				new Button.ButtonAction () {
+					public void execute() {
+						grid.canvas.connectToServer();
+					}
+				},
+				R.drawable.gallery
+		);
 	}
 
 	public void addButton(Button.ButtonAction action, int icon) {

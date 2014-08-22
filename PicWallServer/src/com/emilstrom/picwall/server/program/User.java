@@ -75,4 +75,8 @@ public class User {
 			Console.output("IP: " + c.getIP());
 		}
 	}
+
+	public void disconnect() {
+		Program.server.getClient(clientID).disconnect();
+	}
 }

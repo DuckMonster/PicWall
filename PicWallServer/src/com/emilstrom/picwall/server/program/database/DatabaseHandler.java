@@ -83,11 +83,11 @@ public class DatabaseHandler {
 			BufferedWriter w = new BufferedWriter(new FileWriter(f));
 
 			for(Head h : program.headList) {
-				w.write(h.imageUrl);
+				w.write(h.url);
 				w.newLine();
 
 				for(Node n : h.nodeList) {
-					w.write(n.imageUrl);
+					w.write(n.url);
 					w.newLine();
 				}
 

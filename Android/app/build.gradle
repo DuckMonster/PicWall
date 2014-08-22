@@ -20,7 +20,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile files('libs/ClientEngineAndroid.jar')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile files('libs/ExtraMath.jar')
+    compile files('libs/ClientEngine.jar')
 }

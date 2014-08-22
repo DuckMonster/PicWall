@@ -90,7 +90,7 @@ public class ReplyMenu extends UIElement {
 		return position;
 	}
 	public Vertex2 getTargetPosition() {
-		Vertex2 pos = new Vertex2(head.getTargetPosition());
+		Vertex2 pos = new Vertex2(head.getPosition());
 		pos.x += head.scale / 2 + 0.5f + getWidth()/2;
 
 		return pos;

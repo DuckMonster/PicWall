@@ -12,17 +12,16 @@ import java.util.List;
 /**
  * Created by Emil on 2014-08-08.
  */
-public class Head {
+public class Head extends Image {
 	Program program;
 
 	public int headIndex;
-	public String imageUrl;
 	public List<Node> nodeList;
 
-	public Head(int index, String url, Program p) {
+	public Head(String url, int index, Program p) {
+		super(url);
 		program = p;
 		headIndex = index;
-		imageUrl = url;
 		nodeList = new ArrayList<Node>();
 	}
 
@@ -37,7 +36,7 @@ public class Head {
 	}
 
 	public Node addNode(String url) {
-		Node n = new Node(this, url);
+		Node n = new Node(url, this);
 		nodeList.add(n);
 
 		//Update users of this new node!
@@ -54,7 +53,6 @@ public class Head {
 	}
 
 	public void sendToAllUsers() {
-		MessageBuffer msg = getThreadMessageBuffer();
 		for(User u : program.userList) {
 			if (u != null) sendToUser(u);
 		}
@@ -62,10 +60,10 @@ public class Head {
 
 	public void display() {
 		Console.output("Thread " + headIndex);
-		Console.output(imageUrl, Console.COLOR_GREEN);
+		Console.output(url, Console.COLOR_GREEN);
 
 		for(Node n : nodeList)
-			Console.output("+  " + n.imageUrl, Console.COLOR_YELLOW);
+			Console.output("+  " + n.url, Console.COLOR_YELLOW);
 	}
 
 	public void remove() {
@@ -73,15 +71,14 @@ public class Head {
 		Console.output("Thread " + headIndex + " removed", Console.COLOR_GREEN);
 	}
 
-
 	MessageBuffer getThreadMessageBuffer() {
 		MessageBuffer msg = new MessageBuffer();
 		msg.addWord(Protocol.DATA_HEAD);
 
 		msg.addInt(headIndex);
 
-		msg.addString(imageUrl);
-		for(Node n : nodeList) msg.addString(n.imageUrl);
+		msg.addString(url);
+		for(Node n : nodeList) msg.addString(n.url);
 
 		return msg;
 	}

@@ -264,6 +264,11 @@ public class Grid {
 			zoomedBackgroundMesh.draw();
 		}
 
+		if (!Canvas.client.isConnected()) {
+			Canvas.setStencilDepth(1);
+
+		}
+
 		mainMenu.draw();
 		topMenu.draw();
 	}
