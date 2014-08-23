@@ -22,8 +22,8 @@ import java.util.Random;
  */
 public class Program implements IServer {
 	public static int THREAD_COUNT = 0;
-	public static final String IMAGE_DIRECTORY = "http://199.127.226.140/imgbank";
-	public static final byte VERSION[] = {0, 1, 3, 1};
+	public static final String IMAGE_DIRECTORY = "http://host.patadata.se/imgbank";
+	public static final byte VERSION[] = {0, 2, 1, 1};
 	public static TCPServer server;
 	static Random random = new Random();
 
@@ -46,6 +46,8 @@ public class Program implements IServer {
 		headList = new ArrayList<Head>();
 
 		Console.init(this);
+		addCommands();
+
         runStartupFile();
 	}
 
@@ -236,6 +238,111 @@ public class Program implements IServer {
 
 
 	//CONSOLE COMMANDS
+	public void addCommands() {
+		Command user = new Command("user");
+
+		user.addCommand("show").setExecute(
+				new Command.Execute() {
+					@Override
+					public void exec(List<String> args) {
+						if (!args.get(0).equals("")) {
+							User u = getUser(Integer.parseInt(args.get(0)));
+							if (u != null) u.display();
+							else Console.output("That user doesn't exist!", Console.COLOR_RED);
+						} else
+							displayClientList();
+					}
+				}
+		);
+
+		user.addCommand("clear").setExecute(new Command.Execute() {
+			@Override
+			public void exec(List<String> args) {
+				if (args.get(0).equals("")) {
+					for (User u : userList) if (u != null) u.sendClearCanvas();
+				} else {
+					User u = getUser(Integer.parseInt(args.get(0)));
+					if (u != null) u.sendClearCanvas();
+					else Console.output("That user doesn't exist", Console.COLOR_RED);
+				}
+			}
+		});
+
+		Command thread = new Command("thread");
+
+		thread.addCommand("show").setExecute(
+				new Command.Execute() {
+					@Override
+					public void exec(List<String> args) {
+						if (!args.get(0).equals("")) {
+							Head h = getHead(Integer.parseInt(args.get(0)));
+							if (h != null) h.display();
+							else Console.output("That thread doesn't exist!", Console.COLOR_RED);
+						} else
+							displayThreadList();
+					}
+				}
+		);
+		thread.addCommand("remove").setExecute(
+				new Command.Execute() {
+					@Override
+					public void exec(List<String> args) {
+						if (args.get(0).equals("all")) {
+							removeAllHeads();
+						} else {
+							Head h = getHead(Integer.parseInt(args.get(0)));
+							if (h != null) h.remove();
+							else Console.output("That thread doesn't exist!", Console.COLOR_RED);
+						}
+					}
+				}
+		);
+
+		Command db = new Command("database");
+
+		db.addCommand("root").setExecute(
+				new Command.Execute() {
+					@Override
+					public void exec(List<String> args) {
+						databaseHandler.setRootDir(args.get(0));
+					}
+				}
+		);
+		db.addCommand("dir").setExecute(
+				new Command.Execute() {
+					@Override
+					public void exec(List<String> args) {
+						databaseHandler.setDatabaseDir(args.get(0));
+					}
+				}
+		);
+		db.addCommand("load").setExecute(
+				new Command.Execute() {
+					@Override
+					public void exec(List<String> args) {
+						databaseHandler.loadDatabase(args.get(0));
+					}
+				}
+		);
+		db.addCommand("save").setExecute(
+				new Command.Execute() {
+					@Override
+					public void exec(List<String> args) {
+						if (args.get(0).equals("")) databaseHandler.saveDatabase();
+						else databaseHandler.saveDatabase(args.get(0));
+					}
+				}
+		);
+		db.addCommand("show").setExecute(
+				new Command.Execute() {
+					@Override
+					public void exec(List<String> args) {
+						databaseHandler.print();
+					}
+				}
+		);
+	}
+
 	public void runCommand(String command, String[] params) {
 		try {
 			switch (command) {

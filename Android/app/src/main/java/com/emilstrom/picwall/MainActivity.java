@@ -42,24 +42,6 @@ public class MainActivity extends Activity {
     }
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		surface.canvas.connectToServer();
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-		Canvas.client.disconnect();
-	}
-
-	@Override
-	public void onStop() {
-		super.onStop();
-		Canvas.client.disconnect();
-	}
-
-	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		Canvas.client.disconnect();

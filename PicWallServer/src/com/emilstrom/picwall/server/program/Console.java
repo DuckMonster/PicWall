@@ -4,6 +4,7 @@ import com.emilstrom.picwall.server.Component;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -83,24 +84,26 @@ public class Console implements Runnable {
 	}
 
 	public static void runCommand(String str, Program p) {
-		String[] coms = new String[10];
-		for(int i=0; i<coms.length; i++) coms[i] = "";
+		try {
+			String[] coms = new String[10];
+			for (int i = 0; i < coms.length; i++) coms[i] = "";
 
-		char[] ch = str.toCharArray();
+			char[] ch = str.toCharArray();
 
-		int s = 0;
-		for(int i=0; i<ch.length; i++)
-		{
-			if (ch[i] != ' ')
-				coms[s] += ch[i];
-			else if (i > 0 && ch[i-1] != ' ')
-				s++;
+			int s = 0;
+			for (int i = 0; i < ch.length; i++) {
+				if (ch[i] != ' ')
+					coms[s] += ch[i];
+				else if (i > 0 && ch[i - 1] != ' ')
+					s++;
+			}
+
+			for (Command c : Command.commandList) {
+				c.checkCommandTree(coms);
+			}
+		} catch(Exception e) {
+			Console.output("Something went really wrong there...", COLOR_RED);
+			Console.output(e.toString());
 		}
-
-		String[] args = new String[coms.length - 1];
-		for(int i=0; i<args.length; i++)
-			args[i] = coms[i + 1];
-
-		p.runCommand(coms[0], args);
 	}
 }

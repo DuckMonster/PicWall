@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="ServerEngine">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../!LIBS/jars/ServerEngine.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../TCPEngine/out/artifacts/ServerEngine.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
