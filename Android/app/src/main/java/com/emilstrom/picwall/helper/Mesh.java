@@ -18,7 +18,6 @@ public class Mesh {
 
 	Canvas canvas;
 
-	public Texture tex;
 	public Color color;
 
 	//HANDLES
@@ -38,7 +37,6 @@ public class Mesh {
 
 	public Mesh(Canvas c) {
 		canvas = c;
-		tex = blankTexture;
 
 		setColor(Color.WHITE);
 		generate();
@@ -46,7 +44,6 @@ public class Mesh {
 
 	public Mesh(Canvas c, Texture t) {
 		canvas = c;
-		tex = t;
 
 		setColor(Color.WHITE);
 		generate();
@@ -145,13 +142,13 @@ public class Mesh {
 		GLES20.glDisableVertexAttribArray(a_position);
 	}
 
-	public void draw() {
+	public void draw(Texture t) {
 		GLES20.glUseProgram(Shader.program);
 
 		prepareHandles();
 
-		if (tex != null) {
-			tex.upload();
+		if (t != null) {
+			t.upload();
 		}
 
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);

@@ -1,9 +1,11 @@
 package com.emilstrom.picwall.helper;
 
+import android.content.Loader;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 import com.emilstrom.picwall.MainActivity;
+import com.emilstrom.picwall.canvas.Canvas;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -14,6 +16,8 @@ import java.util.List;
  * Created by Emil on 2014-08-08.
  */
 public class TextureLoader implements Runnable {
+	static int temp_frame = 0;
+
 	static TextureLoader loaderList[];
 	static int loaderIndex = 0;
 
@@ -28,7 +32,8 @@ public class TextureLoader implements Runnable {
 
 		Texture t = new Texture(Texture.TEXTURE_URL);
 
-		loaderList[loaderIndex].addJob(new LoaderJob(t, url));
+//		loaderList[loaderIndex].addJob(new LoaderJob(t, url));
+		loaderList[loaderIndex].addJob(new LoaderJob(t, Canvas.IMAGE_DIRECTORY + "testgif.gif"));
 		loaderIndex = (loaderIndex + 1) % loaderList.length;
 
 		return t;
@@ -105,7 +110,8 @@ public class TextureLoader implements Runnable {
 	public void run() {
 		while(true) {
 			if (jobBuffer.size() > 0) {
-				loadJob(jobBuffer.get(0));
+//				loadJob(jobBuffer.get(0));
+				loadGIFJob(jobBuffer.get(0));
 			}
 
 			try {Thread.sleep(50);} catch (Exception e) {}
@@ -127,6 +133,37 @@ public class TextureLoader implements Runnable {
 			options.inScaled = false;
 
 			bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream(), null, options);
+
+			conn.disconnect();
+
+			bmp = job.targetTexture.setScaledBitmap(bmp);
+		} catch(Exception e) {
+			Log.v(MainActivity.TAG, "Couldnt load " + job.targetURL);
+			job.targetTexture.loadingFailed = true;
+		}
+
+		if (bmp != null) {
+			job.targetTexture.loadedBitmapBuffer = bmp;
+			job.targetTexture.loaded = true;
+
+			Log.v(MainActivity.TAG, "Finished loading " + job.targetURL);
+		} else job.targetTexture.loadingFailed = true;
+
+		jobBuffer.remove(job);
+	}
+
+	public void loadGIFJob(LoaderJob job) {
+		Bitmap bmp = null;
+
+		try {
+			URL url = new URL(job.targetURL);
+			HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+
+			GifDecoder decoder = new GifDecoder();
+			decoder.read(conn.getInputStream());
+
+			bmp = decoder.getFrame(temp_frame & decoder.getFrameCount());
+			temp_frame++;
 
 			conn.disconnect();
 
