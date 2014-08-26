@@ -79,6 +79,7 @@ public class TextureLoader implements Runnable {
 			Log.v(MainActivity.TAG, e.toString());
 		}
 
+
 		if (bmp != null) Log.v(MainActivity.TAG, "Bitmap was loaded from resources!");
 		return bmp;
 	}
