@@ -16,8 +16,6 @@ import java.util.List;
  * Created by Emil on 2014-08-08.
  */
 public class TextureLoader implements Runnable {
-	static int temp_frame = 0;
-
 	static TextureLoader loaderList[];
 	static int loaderIndex = 0;
 
@@ -27,14 +25,16 @@ public class TextureLoader implements Runnable {
 			loaderList[i] = new TextureLoader();
 	}
 
+	static void addJobToLoader(LoaderJob job) {
+		loaderList[loaderIndex].addJob(job);
+		loaderIndex = (loaderIndex + 1) % loaderList.length;
+	}
+
 	public static Texture loadTextureFromURL(String url) {
 		if (loaderList == null) initURLLoaderList(3);
 
 		Texture t = new Texture(Texture.TEXTURE_URL);
-
-//		loaderList[loaderIndex].addJob(new LoaderJob(t, url));
-		loaderList[loaderIndex].addJob(new LoaderJob(t, Canvas.IMAGE_DIRECTORY + "testgif.gif"));
-		loaderIndex = (loaderIndex + 1) % loaderList.length;
+		addJobToLoader(new LoaderJob(t, url));
 
 		return t;
 	}
@@ -51,6 +51,15 @@ public class TextureLoader implements Runnable {
 
 	public static Texture loadTexture(Bitmap b) {
 		return new Texture(Texture.TEXTURE_RESOURCE, b);
+	}
+
+	public static TextureAnimator loadTextureAnimationFromURL(String url) {
+		if (loaderList == null) initURLLoaderList(3);
+
+		TextureAnimator t = new TextureAnimator();
+		addJobToLoader(new LoaderJob(t, url));
+
+		return t;
 	}
 
 	public static Bitmap loadBitmapFromFile(String filePath) {
@@ -89,12 +98,27 @@ public class TextureLoader implements Runnable {
 		return bmp;
 	}
 
+
+	///////////////////
+
 	static class LoaderJob {
+		static int TYPE_IMAGE, TYPE_ANIM;
+
 		Texture targetTexture;
+		TextureAnimator targetTextureAnimator;
 		String targetURL = "";
+		int type;
 
 		public LoaderJob(Texture target, String url) {
+			type = TYPE_IMAGE;
+
 			this.targetTexture = target;
+			this.targetURL = url;
+		}
+		public LoaderJob(TextureAnimator target, String url) {
+			type = TYPE_ANIM;
+
+			this.targetTextureAnimator = target;
 			this.targetURL = url;
 		}
 	}
@@ -110,8 +134,12 @@ public class TextureLoader implements Runnable {
 	public void run() {
 		while(true) {
 			if (jobBuffer.size() > 0) {
-//				loadJob(jobBuffer.get(0));
-				loadGIFJob(jobBuffer.get(0));
+				if (jobBuffer.get(0).targetTexture != null)
+					loadJob(jobBuffer.get(0));
+				else if (jobBuffer.get(0).targetTextureAnimator != null)
+					loadGIFJob(jobBuffer.get(0));
+
+				jobBuffer.remove(0);
 			}
 
 			try {Thread.sleep(50);} catch (Exception e) {}
@@ -148,13 +176,9 @@ public class TextureLoader implements Runnable {
 
 			Log.v(MainActivity.TAG, "Finished loading " + job.targetURL);
 		} else job.targetTexture.loadingFailed = true;
-
-		jobBuffer.remove(job);
 	}
 
 	public void loadGIFJob(LoaderJob job) {
-		Bitmap bmp = null;
-
 		try {
 			URL url = new URL(job.targetURL);
 			HttpURLConnection conn = (HttpURLConnection)url.openConnection();
@@ -162,24 +186,25 @@ public class TextureLoader implements Runnable {
 			GifDecoder decoder = new GifDecoder();
 			decoder.read(conn.getInputStream());
 
-			bmp = decoder.getFrame(temp_frame & decoder.getFrameCount());
-			temp_frame++;
+			for(int i=0; i<decoder.getFrameCount(); i++) {
+				Texture t = new Texture(Texture.TEXTURE_URL);
+
+				Bitmap b = decoder.getFrame(i);
+				b = t.setScaledBitmap(b);
+
+				if (b != null) {
+					t.loadedBitmapBuffer = b;
+					t.loaded = true;
+
+					job.targetTextureAnimator.addTexture(t, decoder.getDelay(i));
+				}
+			}
 
 			conn.disconnect();
-
-			bmp = job.targetTexture.setScaledBitmap(bmp);
 		} catch(Exception e) {
+			Log.v(MainActivity.TAG, e.toString());
 			Log.v(MainActivity.TAG, "Couldnt load " + job.targetURL);
 			job.targetTexture.loadingFailed = true;
 		}
-
-		if (bmp != null) {
-			job.targetTexture.loadedBitmapBuffer = bmp;
-			job.targetTexture.loaded = true;
-
-			Log.v(MainActivity.TAG, "Finished loading " + job.targetURL);
-		} else job.targetTexture.loadingFailed = true;
-
-		jobBuffer.remove(job);
 	}
 }

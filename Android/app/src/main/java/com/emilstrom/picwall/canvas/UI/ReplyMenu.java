@@ -7,6 +7,7 @@ import com.emilstrom.picwall.canvas.Grid;
 import com.emilstrom.picwall.canvas.UI.Image.Head;
 import com.emilstrom.picwall.helper.Color;
 import com.emilstrom.picwall.helper.Mesh;
+import com.emilstrom.picwall.helper.Texture;
 import com.emilstrom.picwall.helper.Vertex2;
 
 import java.util.ArrayList;

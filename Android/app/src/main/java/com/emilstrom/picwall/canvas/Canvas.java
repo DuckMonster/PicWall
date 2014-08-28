@@ -135,7 +135,7 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 				break;
 
 			case Protocol.REQUEST_FILE_NAME:
-				serverFilenameBuffer.add(msg.readString() + ".png");
+				serverFilenameBuffer.add(msg.readString());
 				break;
 		}
 	}

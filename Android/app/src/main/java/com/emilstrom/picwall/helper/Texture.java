@@ -14,9 +14,9 @@ import com.emilstrom.picwall.R;
 public class Texture {
 	public static final int TEXTURE_URL=0, TEXTURE_RESOURCE=1;
 
-	static Texture      loadingTexture = TextureLoader.loadTextureFromResource(R.drawable.loading),
-						failedTexture = TextureLoader.loadTextureFromResource(R.drawable.loadingfailed),
-						blankTexture = TextureLoader.loadTextureFromResource(R.drawable.blank);
+	public static Texture	loadingTexture = TextureLoader.loadTextureFromResource(R.drawable.loading),
+							failedTexture = TextureLoader.loadTextureFromResource(R.drawable.loadingfailed),
+							blankTexture = TextureLoader.loadTextureFromResource(R.drawable.blank);
 
 	//HANDLES
 
@@ -49,7 +49,7 @@ public class Texture {
 			srcHeight = b.getHeight();
 
 			float exp = (float) (Math.log(Math.max(srcWidth, srcHeight)) / Math.log(2));
-			exp = (float) Math.ceil(exp);
+			exp = (float) Math.floor(exp);
 			exp = Math.min(9f, exp);          //MAX SIZE
 
 			sb = Bitmap.createScaledBitmap(b, (int) Math.pow(2, exp), (int) Math.pow(2, exp), false);

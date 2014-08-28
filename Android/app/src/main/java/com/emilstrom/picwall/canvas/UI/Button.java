@@ -16,19 +16,21 @@ public class Button extends UIElement {
 	ButtonAction onClickAction;
 
 	Vertex2 position, targetPosition;
-	Mesh buttonMesh, iconMesh;
+	Mesh buttonMesh;
 	float size = 3f;
 
 	Input oldInput;
 
 	Timer clickedTimer = new Timer(0.5f, true);
 
+	Texture iconTexture;
+
 	public Button(Vertex2 pos, int icon, float size, Grid g) {
 		super(g);
 		position = new Vertex2();
 		targetPosition = pos;
 		buttonMesh = new Mesh(g.canvas);
-		iconMesh = new Mesh(g.canvas, TextureLoader.loadTextureFromResource(icon));
+		iconTexture = TextureLoader.loadTextureFromResource(icon);
 		this.size = size;
 	}
 	public Button(ButtonAction onClick, Vertex2 pos, int icon, float size, Grid g) {
@@ -37,7 +39,7 @@ public class Button extends UIElement {
 		position = new Vertex2();
 		targetPosition = pos;
 		buttonMesh = new Mesh(g.canvas);
-		iconMesh = new Mesh(g.canvas, TextureLoader.loadTextureFromResource(icon));
+		iconTexture = TextureLoader.loadTextureFromResource(icon);
 		this.size = size;
 	}
 
@@ -103,14 +105,16 @@ public class Button extends UIElement {
 
 		buttonMesh.draw();
 
-		if (iconMesh != null) {
-			iconMesh.reset();
+		if (iconTexture != null) {
+			buttonMesh.setColor(Color.WHITE);
 
-			iconMesh.translate(position);
-			iconMesh.scale(size * (1f - iconPadding));
-			iconMesh.scale(iconMesh.tex.scaleWidth, iconMesh.tex.scaleHeight, 1f);
+			buttonMesh.reset();
 
-			iconMesh.draw();
+			buttonMesh.translate(position);
+			buttonMesh.scale(size * (1f - iconPadding));
+			buttonMesh.scale(iconTexture.scaleWidth, iconTexture.scaleHeight, 1f);
+
+			buttonMesh.draw(iconTexture);
 		}
 	}
 }

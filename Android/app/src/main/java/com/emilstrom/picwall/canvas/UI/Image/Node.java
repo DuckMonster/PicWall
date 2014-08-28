@@ -110,17 +110,4 @@ public class Node extends Image {
 
         if (!isExpanded()) clickFingerBuffer = -1;
 	}
-
-	public void draw() {
-		Canvas.setStencilDepth(getDepth());
-
-		mesh.setColor(getColor());
-
-		mesh.reset();
-		mesh.translate(position);
-		mesh.scale(scale);
-
-		mesh.scale(wscale, hscale, 1f);
-		mesh.draw();
-	}
 }

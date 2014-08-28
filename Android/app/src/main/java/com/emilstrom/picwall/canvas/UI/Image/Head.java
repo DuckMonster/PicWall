@@ -75,7 +75,9 @@ public class Head extends Image {
 	}
 
 	public boolean showReplyMenu() {
-		if (isExpanded())
+		if (isZoomed())
+			return false;
+		else if (isExpanded())
 			return true;
 		else if (getNmbrOfNodes() <= 0 && !grid.threadIsExpanded())
 			return true;

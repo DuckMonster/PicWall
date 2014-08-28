@@ -42,13 +42,6 @@ public class Mesh {
 		generate();
 	}
 
-	public Mesh(Canvas c, Texture t) {
-		canvas = c;
-
-		setColor(Color.WHITE);
-		generate();
-	}
-
 	public void generate() {
 		setVertices(
 				new Vertex3(-0.5f, 0.5f, 0f),
@@ -142,6 +135,7 @@ public class Mesh {
 		GLES20.glDisableVertexAttribArray(a_position);
 	}
 
+	public void draw() { draw(Texture.blankTexture); }
 	public void draw(Texture t) {
 		GLES20.glUseProgram(Shader.program);
 

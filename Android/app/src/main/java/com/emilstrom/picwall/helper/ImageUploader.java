@@ -48,7 +48,11 @@ public class ImageUploader implements Runnable {
 	}
 
 	public void run() {
-		compressImage(job.filename);
+		job.targetURL += job.filename.endsWith("gif") ? ".gif" : ".png";
+
+		if (!job.filename.endsWith("gif"))
+			compressImage(job.filename);
+
 		uploadToServer();
 
 		if (job.headReply != -1) {
@@ -89,9 +93,9 @@ public class ImageUploader implements Runnable {
 
 	public void uploadToServer() {
 		final String    lineEnd = "\r\n",
-				twoHyphens = "--",
-				boundary = "*****",
-				targetURL = uploadAdress;
+						twoHyphens = "--",
+						boundary = "*****",
+						targetPHP = uploadAdress;
 
 		final int maxBufferSize = 1 * 1024 * 1024;
 
@@ -109,7 +113,7 @@ public class ImageUploader implements Runnable {
 			}
 
 			FileInputStream fileInputStream = new FileInputStream(sourceFile);
-			URL url = new URL(targetURL);
+			URL url = new URL(targetPHP);
 
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setDoInput(true);
