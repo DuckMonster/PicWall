@@ -204,7 +204,6 @@ public class TextureLoader implements Runnable {
 		} catch(Exception e) {
 			Log.v(MainActivity.TAG, e.toString());
 			Log.v(MainActivity.TAG, "Couldnt load " + job.targetURL);
-			job.targetTexture.loadingFailed = true;
 		}
 	}
 }
