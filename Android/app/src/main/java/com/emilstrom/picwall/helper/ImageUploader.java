@@ -9,10 +9,16 @@ import com.emilstrom.picwall.canvas.Canvas;
 import com.emilstrom.picwall.canvas.Grid;
 import com.emilstrom.picwall.canvas.UI.Image.Head;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -50,10 +56,18 @@ public class ImageUploader implements Runnable {
 	public void run() {
 		job.targetURL += job.filename.endsWith("gif") ? ".gif" : ".png";
 
-		if (!job.filename.endsWith("gif"))
-			compressImage(job.filename);
-
-		uploadToServer();
+		try {
+			if (!job.filename.endsWith("gif")) {
+				compressImage(job.filename);
+				uploadToServer(new FileInputStream(new File(job.filename)));
+			} else {
+				InputStream stream = compressGif(job.filename);
+				uploadToServer(stream);
+			}
+		} catch(Exception e) {
+			Log.v(MainActivity.TAG, "Coudlnt upload file");
+			Log.v(MainActivity.TAG, e.toString());
+		}
 
 		if (job.headReply != -1) {
 			grid.canvas.sendNodeUploaded(grid.getHeadByServerID(job.headReply), job.targetURL);
@@ -91,7 +105,52 @@ public class ImageUploader implements Runnable {
 		}
 	}
 
-	public void uploadToServer() {
+	public InputStream compressGif(String filename) {
+		try {
+			Log.v(MainActivity.TAG, "Compressing gif...");
+
+			GifDecoder dec = new GifDecoder();
+			dec.read(new FileInputStream(new File(filename)));
+
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			GifEncoder enc = new GifEncoder();
+			enc.start(out);
+
+			for(int i=0; i<dec.getFrameCount()/2; i++) {
+				Bitmap b = dec.getFrame(i*2);
+
+				//Scale down
+				ByteArrayOutputStream bitmapStream = new ByteArrayOutputStream();
+
+				b.compress(Bitmap.CompressFormat.JPEG, 20, bitmapStream);
+
+				BitmapFactory.Options options = new BitmapFactory.Options();
+
+				b = BitmapFactory.decodeStream(new ByteArrayInputStream(bitmapStream.toByteArray()), null, options);
+
+				enc.addFrame(b);
+
+				b.recycle();
+
+				enc.setDelay(dec.getDelay(i)*2);
+
+				Log.v(MainActivity.TAG, "... " + i + "/" + dec.getFrameCount());
+			}
+
+			enc.finish();
+
+			Log.v(MainActivity.TAG, "Compression finished!");
+
+			return new ByteArrayInputStream(out.toByteArray());
+		} catch(Exception e) {
+			Log.v(MainActivity.TAG, "Couldn't compress GIF file at " + filename);
+			Log.v(MainActivity.TAG, e.toString());
+		}
+
+		return null;
+	}
+
+	public void uploadToServer(InputStream stream) {
 		final String    lineEnd = "\r\n",
 						twoHyphens = "--",
 						boundary = "*****",
@@ -112,7 +171,6 @@ public class ImageUploader implements Runnable {
 				return;
 			}
 
-			FileInputStream fileInputStream = new FileInputStream(sourceFile);
 			URL url = new URL(targetPHP);
 
 			conn = (HttpURLConnection) url.openConnection();
@@ -134,18 +192,18 @@ public class ImageUploader implements Runnable {
 
 			dos.writeBytes(lineEnd);
 
-			bytesAvailable = fileInputStream.available();
+			bytesAvailable = stream.available();
 
 			bufferSize = Math.min(bytesAvailable, maxBufferSize);
 			buffer = new byte[bufferSize];
 
-			bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+			bytesRead = stream.read(buffer, 0, bufferSize);
 
 			while(bytesRead > 0) {
 				dos.write(buffer, 0, bufferSize);
-				bytesAvailable = fileInputStream.available();
+				bytesAvailable = stream.available();
 				bufferSize = Math.min(bytesAvailable, maxBufferSize);
-				bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+				bytesRead = stream.read(buffer, 0, bufferSize);
 			}
 
 			dos.writeBytes(lineEnd);
@@ -155,7 +213,7 @@ public class ImageUploader implements Runnable {
 			String responseMsg = conn.getResponseMessage();
 			Log.v(MainActivity.TAG, "Server response: " + response + " / " + responseMsg);
 
-			fileInputStream.close();
+			stream.close();
 			dos.flush();
 			dos.close();
 

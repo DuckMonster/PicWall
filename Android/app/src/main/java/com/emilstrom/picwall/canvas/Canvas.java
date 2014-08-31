@@ -95,7 +95,10 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 		}
 
 		long newTime = System.currentTimeMillis();
-		updateTime = (newTime - lastTime) * 0.001f;
+		if ((newTime - lastTime) * 0.001f > 0.5f)  //Heavy lag
+			updateTime = 0f;
+		else
+			updateTime = (newTime - lastTime) * 0.001f;
 
 		lastTime = newTime;
 	}
@@ -223,7 +226,7 @@ public class Canvas implements GLSurfaceView.Renderer, IClient {
 		float ratio = (float)width / height;
 		canvasHeight = canvasWidth/ratio;
 
-		Matrix.orthoM(projectionMatrix, 0, -canvasWidth/2, canvasWidth/2, -canvasHeight/2, canvasHeight/2, 1f, 16f);
+		Matrix.orthoM(projectionMatrix, 0, -canvasWidth/2, canvasWidth/2, -canvasHeight/2, canvasHeight/2, 1f, 50f);
 	}
 
 	public static void setStencilDepth(int d) {

@@ -103,6 +103,8 @@ public class Button extends UIElement {
 		buttonMesh.translate(position);
 		buttonMesh.scale(size);
 
+		buttonMesh.translate(0f, 0f, -getDepth() - 0.1f);
+
 		buttonMesh.draw();
 
 		if (iconTexture != null) {

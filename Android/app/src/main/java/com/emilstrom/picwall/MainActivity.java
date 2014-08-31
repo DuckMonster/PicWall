@@ -3,22 +3,17 @@ package com.emilstrom.picwall;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.emilstrom.picwall.canvas.Canvas;
-
-import org.apache.http.protocol.HTTP;
+import com.google.android.gms.analytics.ExceptionParser;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
 
 
 public class MainActivity extends Activity {
@@ -34,6 +29,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Crashlytics.start(this);
+
 	    context = this;
 
 	    surface = new GLSurface(this);
@@ -116,5 +113,14 @@ public class MainActivity extends Activity {
 		if (!f.exists()) f.mkdir();
 
 		return new File(f, "image.tmp");
+	}
+
+	public static void printMemoryUsage() {
+		try {
+			Runtime info = Runtime.getRuntime();
+			Log.v(TAG, "Memory usage: " + ((float)(info.totalMemory() - info.freeMemory()) / info.totalMemory() * 100) + "%");
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

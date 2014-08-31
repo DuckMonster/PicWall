@@ -8,6 +8,8 @@ import com.emilstrom.picwall.helper.*;
  * Created by Emil on 2014-08-01.
  */
 public class Node extends Image {
+	public static float NODE_PADDING = 1.2f, NODE_PADDING_SHOWCASE = 0.3f;
+
 	Head head;
 	public int nodeIndex;
 
@@ -58,43 +60,50 @@ public class Node extends Image {
 		super.zoom();
 	}
 
+	@Override
 	public Vertex2 getTargetPosition() {
 		if (isZoomed()) {
 			return new Vertex2(grid.canvas.canvasWidth * head.zoomOffset, 0f);
 		} else {
 			float s = grid.gridScale;
+			Vertex2 pos;
 
-			Vertex2 pos = new Vertex2(
-					-grid.canvas.canvasWidth / 2 + IMAGE_OFFSET + .5f * s +
-					(1.2f + 1.2f * nodeIndex) * s * (isExpanded() ? 1f : 0.1f),
+			if (!isExpanded()) {
+				pos = head.getTargetPosition();
+				pos.x += 0.3f * s;
+				pos.y -= 0.4f * s;
 
-					0f - 1.2f * s * head.headIndex
-			);
+				pos.x += NODE_PADDING_SHOWCASE * nodeIndex * s;
+			} else {
+				pos = new Vertex2(
+						-grid.canvas.canvasWidth / 2 + 0.8f * s + head.nodePosition * s,
+						-1.2f * grid.gridScale * head.headIndex + grid.gridPosition - .5f * s
+				);
 
-			if (isExpanded()) {
-				pos.x -= 1f * s;
-				pos.x += head.nodePosition * s;
-				pos.y -= .5f * s;
-			} else if (grid.threadIsExpanded()) {
-				if (grid.expandedHead > head.headIndex)
-					pos.y += .5f * scale;
-				else
-					pos.y -= .5f * scale;
-
-				pos.x = -grid.canvas.canvasWidth/2 - 0.5f * scale;
+				pos.x += NODE_PADDING * nodeIndex * s;
 			}
 
-			pos.y += grid.gridPosition;
+			if (grid.threadIsExpanded() && !isExpanded()) {
+				pos.x -= 2f * s;
+			}
 
 			return pos;
 		}
 	}
 
 	@Override
+	public float getTargetScale() {
+		float s = super.getTargetScale();
+		if (!isExpanded()) s *= 0.5f - 0.2f * nodeIndex;
+
+		return s;
+	}
+
+	@Override
 	public Color getColor() {
 		if (isZoomed()) return Color.WHITE;
-		else if (grid.threadIsExpanded() && !isExpanded()) return new Color(1f, 1f, 1f, 0.4f - 0.2f*nodeIndex);
-		else if (!isExpanded()) return new Color(1f, 1f, 1f, 0.5f - 0.25f*nodeIndex);
+		else if (grid.threadIsExpanded() && !isExpanded()) return new Color(1f, 1f, 1f, 1f);
+		else if (!isExpanded()) return new Color(1f, 1f, 1f, 1f);
 		else return super.getColor();
 	}
 
@@ -102,7 +111,7 @@ public class Node extends Image {
 	public int getDepth() {
 		if (isZoomed()) return 5;
 		else if (isExpanded()) return 9;
-		else return 11 + nodeIndex;
+		else return 10 + nodeIndex;
 	}
 
 	public void logic() {

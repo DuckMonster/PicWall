@@ -19,22 +19,37 @@ import java.util.List;
 public class TopMenu extends UIElement {
 	public static float menuHeight = 4f, buttonPadding = 0.4f;
 
-	static class MenuButton extends Button {
+	private static class MenuButton extends Button {
+		static final int ALIGN_LEFT = 0, ALIGN_RIGHT = 1;
+
+		public int buttonAlign;
 		int buttonIndex;
 		TopMenu menu;
 
-		public MenuButton(ButtonAction onClick, int index, int icon, TopMenu menu, Grid g) {
+		public MenuButton(ButtonAction onClick, int align, int index, int icon, TopMenu menu, Grid g) {
 			super(onClick, new Vertex2(), icon, menuHeight - buttonPadding*2, g);
 			this.menu = menu;
 			buttonIndex = index;
+			buttonAlign = align;
 		}
 
 		@Override
 		public Vertex2 getTargetPosition() {
-			return new Vertex2(
-					-grid.canvas.canvasWidth/2 + buttonPadding + size/2 + (buttonPadding + size) * buttonIndex,
-					menu.getPosition().y
-			);
+			switch (buttonAlign) {
+				case ALIGN_LEFT:
+					return new Vertex2(
+							-grid.canvas.canvasWidth / 2 + buttonPadding + size / 2 + (buttonPadding + size) * buttonIndex,
+							menu.getPosition().y
+					);
+
+				case ALIGN_RIGHT:
+					return new Vertex2(
+							+grid.canvas.canvasWidth / 2 - buttonPadding - size / 2 - (buttonPadding + size) * buttonIndex,
+							menu.getPosition().y
+					);
+
+				default: return new Vertex2();
+			}
 		}
 	}
 
@@ -51,6 +66,7 @@ public class TopMenu extends UIElement {
 						MainActivity.context.launchCameraIntent(-1);
 					}
 				},
+				MenuButton.ALIGN_LEFT,
 				R.drawable.camera
 		);
 
@@ -60,17 +76,7 @@ public class TopMenu extends UIElement {
 						MainActivity.context.launchImagePickerIntent(-1);
 					}
 				},
-				R.drawable.gallery
-		);
-
-		addButton(
-				new Button.ButtonAction () {
-					public void execute() {
-						Canvas.client.disconnect();
-						grid.receiveClear();
-						//grid.canvas.connectToServer();
-					}
-				},
+				MenuButton.ALIGN_LEFT,
 				R.drawable.gallery
 		);
 
@@ -80,12 +86,20 @@ public class TopMenu extends UIElement {
 						grid.canvas.connectToServer();
 					}
 				},
-				R.drawable.gallery
+				MenuButton.ALIGN_RIGHT,
+				R.drawable.refresh
 		);
 	}
 
-	public void addButton(Button.ButtonAction action, int icon) {
-		buttonList.add(new MenuButton(action, buttonList.size(), icon, this, grid));
+	public void addButton(Button.ButtonAction action, int align, int icon) {
+		buttonList.add(new MenuButton(action, align, getButtonsAligned(align), icon, this, grid));
+	}
+
+	public int getButtonsAligned(int align) {
+		int n = 0;
+		for(MenuButton b : buttonList) if (b.buttonAlign == align) n++;
+
+		return n;
 	}
 
 	public Vertex2 getPosition() {

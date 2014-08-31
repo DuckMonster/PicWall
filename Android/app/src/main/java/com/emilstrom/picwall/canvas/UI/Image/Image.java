@@ -19,7 +19,7 @@ public class Image extends UIElement {
 
 	public Vertex2 position;
 	public float scale;
-	float wscale = 0f, hscale = 1f;
+	public float wscale = 0f, hscale = 1f;
 
 	int clickFingerBuffer = -1;
 	Vertex2 clickPositionBuffer;
@@ -69,7 +69,7 @@ public class Image extends UIElement {
 	}
 
 	public void loadTexture() {
-		if (imageTexture != null || imageURL.equals("")) return;
+		if (imageTexture != null || imageTextureAnimator != null || imageURL.equals("")) return;
 
 		if (imageURL.endsWith("gif"))
 			imageTextureAnimator = TextureLoader.loadTextureAnimationFromURL(imageURL);
@@ -79,12 +79,12 @@ public class Image extends UIElement {
 
 	public boolean isLoaded() {
 		if (getTexture() == null) return false;
-		else if (getTexture().textureType != Texture.TEXTURE_URL) return true;
+		else if (getTexture().textureType != Texture.TEXTURE_URL) return false;
 		else return getTexture().loaded;
 	}
 
 	public boolean isOnScreen() {
-		return Math.abs(position.y) - hscale * scale < grid.canvas.canvasHeight/2;
+		return scale > 0 && Math.abs(position.y) - hscale * scale < grid.canvas.canvasHeight/2;
 	}
 
 	public Vertex2 getTargetPosition() {
@@ -93,7 +93,10 @@ public class Image extends UIElement {
 
 	public float getTargetScale() {
 		if (isZoomed()) {
-			return grid.canvas.canvasWidth / getTexture().scaleWidth - 1f;
+			if (getTexture() == null)
+				return grid.canvas.canvasWidth - 1f;
+			else
+				return grid.canvas.canvasWidth / getTexture().scaleWidth - 1f;
 		}
 		else return grid.gridScale;
 	}
@@ -101,7 +104,7 @@ public class Image extends UIElement {
 	public Texture getTexture() {
 		if (imageTextureAnimator != null) return imageTextureAnimator.getTexture();
 		else if (imageTexture != null) return imageTexture;
-		else return Texture.loadingTexture;
+		else return null;
 	}
 
 	public Color getColor() {
@@ -124,7 +127,6 @@ public class Image extends UIElement {
 	}
 
 	public void onSwipe(int dir) {
-
 	}
 
 	public void logic() {
@@ -138,6 +140,9 @@ public class Image extends UIElement {
 
 		if (imageTextureAnimator != null) imageTextureAnimator.logic();
 
+		if (isOnScreen() && getTexture() == null)
+			loadTexture();
+
 		//Scale to target scale
 		if (!grid.isScaling()) {
 			float dif = getTargetScale() - scale;
@@ -150,15 +155,18 @@ public class Image extends UIElement {
 			if (wscale != targetW) {
 				float dif = targetW - wscale;
 				if (Math.abs(dif) < 0.01) wscale = targetW;
-				else wscale += dif * 20f * Canvas.updateTime;
+				else wscale += dif * 5f * Canvas.updateTime;
 			}
 
 			float targetH = getTexture().scaleHeight;
 			if (hscale != targetH) {
 				float dif = targetH - hscale;
 				if (Math.abs(dif) < 0.01) hscale = targetH;
-				else hscale += dif * 20f * Canvas.updateTime;
+				else hscale += dif * 5f * Canvas.updateTime;
 			}
+		} else {
+			wscale = loadingIcon.rectangle.x;
+			hscale = loadingIcon.rectangle.y;
 		}
 
 		Input in = InputHelper.getInput();
@@ -171,7 +179,7 @@ public class Image extends UIElement {
 		if (grid.isMovingGrid() || grid.isScaling() || grid.isMovingNodes())
 			clickFingerBuffer = -1;
 
-		if (!isLoaded()) loadingIcon.logic();
+		loadingIcon.logic();
 	}
 
 	public void checkInput(Input in) {
@@ -216,21 +224,22 @@ public class Image extends UIElement {
 	}
 
 	public void draw() {
-		if (!isLoaded()) {
-			loadingIcon.draw();
-			return;
-		}
-
 		Canvas.setStencilDepth(getDepth());
 
-		mesh.setColor(getColor());
+		if (scale > 0f) {
+			if (isLoaded()) {
+				mesh.setColor(getColor());
 
-		mesh.reset();
-		mesh.translate(position);
-		mesh.scale(scale);
+				mesh.reset();
+				mesh.translate(position);
+				mesh.scale(scale);
 
-		mesh.scale(wscale, hscale, 1f);
+				mesh.scale(wscale, hscale, 1f);
 
-		mesh.draw(getTexture());
+				mesh.draw(getTexture());
+			}
+
+			loadingIcon.draw();
+		}
 	}
 }

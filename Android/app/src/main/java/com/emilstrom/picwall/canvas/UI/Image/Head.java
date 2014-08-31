@@ -35,6 +35,7 @@ public class Head extends Image {
 
 	public Head(int serverID, String url, int index, Grid g) {
 		super(url, g);
+
 		headServerIndex = serverID;
 		headIndex = index;
 		replyMenu = new ReplyMenu(this, g);
@@ -94,7 +95,7 @@ public class Head extends Image {
 
 			pos.y += grid.gridPosition;
 			//if (isExpanded()) pos.x = -grid.canvas.canvasWidth / 2 + expandHeadOffset * scale;
-			if (isExpanded()) pos.y += .5f * scale;
+			if (isExpanded()) pos.y += .5f * grid.gridScale;
 			else if (grid.threadIsExpanded()) {
 				if (grid.expandedHead > headIndex)
 					pos.y += .5f * scale;
@@ -117,7 +118,7 @@ public class Head extends Image {
 	public int getDepth() {
 		if (isZoomed()) return 5;
 		else if (isExpanded()) return 9;
-		else return 10;
+		else return 10 + nodeList.size();
 	}
 
 	public boolean isExpanded() {
@@ -135,8 +136,6 @@ public class Head extends Image {
 		grid.centerThread(this);
 		expandOriginPosition = grid.gridPosition;
 		expandHeadOffset = expandMaxOffset;
-
-		for(Node n : nodeList) if (!n.isLoaded()) n.loadTexture();
 	}
 
 	public void collapse() {
@@ -158,7 +157,7 @@ public class Head extends Image {
 	}
 
 	public void centerNode(Node n) {
-		nodePosition = -1f * (n.nodeIndex+1);
+		nodePosition = grid.canvas.canvasWidth / 2 / grid.gridScale - 0.8f - n.nodeIndex * Node.NODE_PADDING;
 	}
 
 	public void logic() {
@@ -219,7 +218,7 @@ public class Head extends Image {
 			nodePosition += nodeSpeed / grid.gridScale;
 
 			if (nodePosition > 0f) nodePosition = 0f;
-			if (nodePosition < -1.2f * (nodeList.size() - 1)) nodePosition = -1.2f * (nodeList.size() - 1);
+			if (nodePosition < -(nodeList.size() - 1) * Node.NODE_PADDING) nodePosition = -(nodeList.size() - 1) * Node.NODE_PADDING;
 
 			expandHeadOffset += nodeSpeed / grid.gridScale;
 
@@ -233,7 +232,11 @@ public class Head extends Image {
 	public void draw() {
 		if (!isOnScreen()) return;
 
-		for(Node n : nodeList) n.draw();
+		if (isExpanded())
+			for(Node n : nodeList) n.draw();
+		else
+			for(int i=0; i<Math.min(2, nodeList.size()); i++) getNode(i).draw();
+
 		super.draw();
 
 		if (showReplyMenu()) replyMenu.draw();

@@ -19,7 +19,7 @@ import java.util.List;
 public class ReplyMenu extends UIElement {
 	public static float menuHeight = 3f, buttonPadding = 0.4f;
 
-	static class MenuButton extends Button {
+	private static class MenuButton extends Button {
 		ReplyMenu menu;
 		int buttonIndex;
 

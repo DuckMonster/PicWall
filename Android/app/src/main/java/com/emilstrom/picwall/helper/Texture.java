@@ -13,6 +13,7 @@ import com.emilstrom.picwall.R;
  */
 public class Texture {
 	public static final int TEXTURE_URL=0, TEXTURE_RESOURCE=1;
+	public static final int STANDARD_MAX_SIZE = 10, REDUCED_MAX_SIZE = 8;
 
 	public static Texture	loadingTexture = TextureLoader.loadTextureFromResource(R.drawable.loading),
 							failedTexture = TextureLoader.loadTextureFromResource(R.drawable.loadingfailed),
@@ -37,11 +38,11 @@ public class Texture {
 	}
 	public Texture(int textureType, Bitmap b) {
 		this.textureType = textureType;
-		b = setScaledBitmap(b);
+		b = setScaledBitmap(b, 10);
 		setLoadedBitmap(b);
 	}
 
-	public Bitmap setScaledBitmap(Bitmap b) {
+	public synchronized Bitmap setScaledBitmap(Bitmap b, int maxSize) {
 		Bitmap sb = null;
 
 		try {
@@ -49,19 +50,22 @@ public class Texture {
 			srcHeight = b.getHeight();
 
 			float exp = (float) (Math.log(Math.max(srcWidth, srcHeight)) / Math.log(2));
-			exp = (float) Math.floor(exp);
-			exp = Math.min(9f, exp);          //MAX SIZE
+			exp = (float) Math.ceil(exp);
+			exp = Math.min(maxSize, exp);          //MAX SIZE
 
 			sb = Bitmap.createScaledBitmap(b, (int) Math.pow(2, exp), (int) Math.pow(2, exp), false);
-
-			Log.v(MainActivity.TAG, "Scaling image..." + b.getWidth() + "x" + b.getHeight() + " -> " + sb.getWidth() + "x" + sb.getWidth());
 
 			texWidth = sb.getWidth();
 			texHeight = sb.getHeight();
 
 			generateScaleValues();
 
-			if (sb != b) b.recycle();
+			if (sb != b) {
+				b.recycle();
+				b = null;
+			}
+
+			Thread.sleep(5);
 		} catch(Exception e) {
 			Log.v(MainActivity.TAG, "Couldnt scale picture");
 			Log.v(MainActivity.TAG, e.toString());
@@ -84,6 +88,7 @@ public class Texture {
 			GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bmp, 0);
 
 			bmp.recycle();
+			bmp = null;
 		} catch(Exception e) {
 			Log.v(MainActivity.TAG, "Couldnt upload bitmap data to GL");
 			Log.v(MainActivity.TAG, e.toString());
@@ -120,7 +125,6 @@ public class Texture {
 		}
 
 		if (!loaded) {
-			loadingTexture.upload();
 			return;
 		}
 

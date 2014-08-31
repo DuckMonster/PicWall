@@ -8,7 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="PicWallProtocol" exported="" />
-    <orderEntry type="library" name="ServerEngine" level="project" />
+    <orderEntry type="library" exported="" name="ServerEngine" level="project" />
   </component>
 </module>
 

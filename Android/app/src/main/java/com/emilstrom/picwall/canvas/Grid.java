@@ -284,12 +284,10 @@ public class Grid {
 	public void receiveHead(MessageBuffer msg) {
 		int serverID = msg.readInt();
 		int headID = addHead(serverID, Canvas.IMAGE_DIRECTORY + msg.readString());
-		headList.get(headID).loadTexture();
 
 		//And then the nodes
 		while(msg.getSize() > 0) {
 			Node n = addNodeToHead(headID, Canvas.IMAGE_DIRECTORY + msg.readString());
-			if (n.nodeIndex < 2) n.loadTexture();
 		}
 	}
 

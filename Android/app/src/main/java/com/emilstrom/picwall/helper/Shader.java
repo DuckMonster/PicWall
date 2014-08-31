@@ -24,7 +24,12 @@ public class Shader {
 			"uniform vec4 u_color;" +
 			"varying vec2 v_texPosition;" +
 			"void main() {" +
-					"gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0) * texture2D(u_texture, v_texPosition) * u_color;" +
+					"vec4 color = texture2D(u_texture, v_texPosition) * u_color;" +
+					"if (color.a > 0.0) {" +
+						"gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0) * texture2D(u_texture, v_texPosition) * u_color;" +
+					"} else {" +
+						"discard;" +
+					"}" +
 			"}";
 
 	public static int vertexShader, fragmentShader;

@@ -14,6 +14,7 @@ import java.util.TimeZone;
  * Created by Emil on 2014-08-05.
  */
 public class Console implements Runnable {
+	static final int padding = 26;
 	static final String ESC = "\033[";
 	public static final int COLOR_BLACK = 30,
 							COLOR_RED = 31,
@@ -26,30 +27,44 @@ public class Console implements Runnable {
 
 	public static void output(String msg) { output(msg, COLOR_WHITE); }
 	public static void output(String msg, int color) {
-		System.out.print(ESC + "0G");
+		resetCursor(0);
+		clearColor();
 
-		int padding = 120;
-
-		String s = "| " + ESC + Integer.toString(color) + "m" + msg;
-		for(int i=0; i<padding - msg.length(); i++) s += " ";
+		String s = "";
 
 		Date date = new Date();
 		DateFormat formatter= new SimpleDateFormat("E, MMM dd, HH:mm:ss");
 		formatter.setTimeZone(TimeZone.getTimeZone("CET"));
 
+		String dateStr = formatter.format(date);
+
 		s += ESC + "33;2m";
-		s += formatter.format(date);
+		s += dateStr;
 		s += ESC + "m";
+
+		for(int i=0; i<padding - dateStr.length() - 1; i++) s += ".";
+
+		s += "| " + ESC + Integer.toString(color) + "m" + msg;
 
 		System.out.println(s);
 
-		System.out.print(ESC + "0G");
+		resetCursor(padding);
+		clearColor();
+
 		System.out.print("# ");
 	}
 
 	public static void clear() {
 		System.out.print(ESC + "2J");
 		System.out.print(ESC + "f");
+	}
+
+	static void resetCursor(int pos) {
+		System.out.print(ESC + Integer.toString(pos) + "G");
+	}
+
+	static void clearColor() {
+		System.out.print(ESC + "0m");
 	}
 
 	static Thread inputThread;
@@ -71,7 +86,7 @@ public class Console implements Runnable {
 		while(Component.running) {
 			String str = "";
 
-			System.out.print(ESC + "0G");
+			resetCursor(padding);
 			System.out.print("# ");
 
 			try{str = in.readLine();}
